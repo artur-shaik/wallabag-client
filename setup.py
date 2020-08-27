@@ -30,6 +30,6 @@ setup(
 
     entry_points='''
         [console_scripts]
-        wallabag=wallabag.wallabag:main
+        wallabag=wallabag.wallabag:cli
     '''
 )

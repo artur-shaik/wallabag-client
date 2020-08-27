@@ -2,6 +2,7 @@
 """
 The main entry point of wallabag-cli.
 """
+import click
 import getopt
 from pkg_resources import get_distribution
 import platform
@@ -19,10 +20,9 @@ from . import wallabag_show
 from . import wallabag_update
 
 
-def main():
-    command = None
-    need_config = False
-
+@click.group()
+@click.option('--config', help='configuration file')
+def cli(config):
     # Workaround for default non-unicode encodings in the Windows cmd and Powershell
     # -> Analyze encoding and set to utf-8
     if platform.system() == "Windows":
@@ -30,35 +30,66 @@ def main():
         if "65001" not in codepage:
             subprocess.check_output(['chcp', '65001'], shell=True)
 
+    if config:
+        conf.set_path(config)
+
+
+@cli.command()
+@click.option('-s/-u', '--starred/--unstarred', default=None)
+@click.option('-r/-n', '--read/--unread', default=None)
+@click.option('-a', '--all', default=False, is_flag=True)
+@click.option('-o', '--oldest', default=False, is_flag=True)
+@click.option('-t', '--trim-output', default=False, is_flag=True)
+@click.option('-c', '--count', default=False, is_flag=True)
+@click.option('-q', '--quantity', type=click.INT)
+def list(starred, read, all, oldest, trim_output, count, quantity):
+    if all:
+        read = None
+        starred = None
+
+    if count:
+        wallabag_list.count_entries(read, starred)
+    else:
+        wallabag_list.list_entries(
+            quantity, read, starred, oldest, trim_output)
+
+
+@cli.command()
+def show():
+    click.echo("show")
+
+
+@click.command()
+def main(config):
+    command = None
+    need_config = False
+
     # Determine custom config path
-    for arg in argv:
-        if arg[0:9] == "--config=":
-            conf.set_path(arg[9:len(arg)])
 
     # Determine command or general standalone option
-    if len(argv) == 1 or argv[1] in {'-h', '--help'}:
-        help(argv[0])
-        exit(0)
-    elif argv[1] in {'-v', '--version'}:
-        print(get_distribution('wallabag-cli').version)
-        exit(0)
-    elif argv[1] in {'--about'}:
-        print("wallabag-cli")
-        print("© 2016 by Michael Scholz (https://mischolz.de)")
-        print()
-        print("This software is licensed under the MIT.")
-        exit(0)
-    elif argv[1] in ["config", "add", "update", "read", "star", "delete", "list", "show"]:
-        command = argv[1]
-        need_config = command != "config"
-    elif argv[1][0] != '-':
-        print("Error: Invalid command \"{0}\".".format(argv[1]))
-        print("Use \"{0}\" to see a full list of commands.".format(argv[0]))
-        exit(-1)
-    else:
-        print("Invalid option \"{0}\".".format(argv[1]))
-        print("Use \"{0}\" to see a full list of options.".format(argv[0]))
-        exit(-1)
+    # if len(argv) == 1 or argv[1] in {'-h', '--help'}:
+    #     help(argv[0])
+    #     exit(0)
+    # elif argv[1] in {'-v', '--version'}:
+    #     print(get_distribution('wallabag-cli').version)
+    #     exit(0)
+    # elif argv[1] in {'--about'}:
+    #     print("wallabag-cli")
+    #     print("© 2016 by Michael Scholz (https://mischolz.de)")
+    #     print()
+    #     print("This software is licensed under the MIT.")
+    #     exit(0)
+    # elif argv[1] in ["config", "add", "update", "read", "star", "delete", "list", "show"]:
+    #     command = argv[1]
+    #     need_config = command != "config"
+    # elif argv[1][0] != '-':
+    #     print("Error: Invalid command \"{0}\".".format(argv[1]))
+    #     print("Use \"{0}\" to see a full list of commands.".format(argv[0]))
+    #     exit(-1)
+    # else:
+    #     print("Invalid option \"{0}\".".format(argv[1]))
+    #     print("Use \"{0}\" to see a full list of options.".format(argv[0]))
+    #     exit(-1)
 
     if need_config and not conf.is_valid():
         i = input(
@@ -347,6 +378,3 @@ def main():
             if opt == "--html":
                 html = True
         wallabag_show.show(entry_id, color, raw, html)
-
-if __name__ == "__main__":
-    main()
