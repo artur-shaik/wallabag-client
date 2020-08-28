@@ -87,6 +87,14 @@ def add(url, title, read, starred, quiet):
     wallabag_add.add(url, title, starred, read, quiet)
 
 
+@cli.command()
+@click.option('-f', '--force', default=False, is_flag=True)
+@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.argument('entry_id', required=True)
+def delete(entry_id, force, quiet):
+    wallabag_delete.delete(entry_id, force, quiet)
+
+
 @click.command()
 def main(config):
     command = None
@@ -201,35 +209,6 @@ def main(config):
             print()
             exit(-1)
         wallabag_update.update(entry_id, toggle_read, toggle_star, title, quiet)
-
-    if command == "delete":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing entry-id.")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        entry_id = argv[len(argv) - 1]
-        force = False
-        quiet = False
-
-        try:
-            args = getopt.getopt(optionlist, "hfq", [
-                "help", "config=", "force", "quiet"])[0]
-        except getopt.GetoptError as e:
-            print("Error: Invalid option \"{0}\"".format(e.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt in ('-f', '--force'):
-                force = True
-            if opt in ('-q', '--quiet'):
-                quiet = True
-        wallabag_delete.delete(entry_id, force, quiet)
 
     if command == "list":
         if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
