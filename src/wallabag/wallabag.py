@@ -59,8 +59,15 @@ def list(starred, read, all, oldest, trim_output, count, quantity):
 @click.option('-r', '--raw', default=False, is_flag=True)
 @click.option('-t', '--html', default=False, is_flag=True)
 @click.argument('entry_id', required=True)
-def show(color, entry_id, raw, html):
+def show(entry_id, color, raw, html):
     wallabag_show.show(entry_id, color, raw, html)
+
+
+@cli.command()
+@click.option('-q', '--quiet', default=False)
+@click.argument('entry_id', required=True)
+def read(entry_id, quiet):
+    wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
 
 
 @click.command()
@@ -212,32 +219,6 @@ def main(config):
             print()
             exit(-1)
         wallabag_update.update(entry_id, toggle_read, toggle_star, title, quiet)
-
-    if command == "read":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing entry-id.")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        entry_id = argv[len(argv) - 1]
-        quiet = False
-
-        try:
-            args = getopt.getopt(optionlist, "hq", [
-                "help", "config=", "quiet"])[0]
-        except getopt.GetoptError as ex:
-            print("Error: Invalid option \"{0}\"".format(ex.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt in ('-q', '--quiet'):
-                quiet = True
-        wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
 
     if command == "star":
         if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
