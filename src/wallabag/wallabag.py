@@ -70,6 +70,13 @@ def read(entry_id, quiet):
     wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
 
 
+@cli.command()
+@click.option('-q', '--quiet', default=False)
+@click.argument('entry_id', required=True)
+def star(entry_id, quiet):
+    wallabag_update.update(entry_id, toggle_star=True, quiet=quiet)
+
+
 @click.command()
 def main(config):
     command = None
@@ -219,32 +226,6 @@ def main(config):
             print()
             exit(-1)
         wallabag_update.update(entry_id, toggle_read, toggle_star, title, quiet)
-
-    if command == "star":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing entry-id.")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        entry_id = argv[len(argv) - 1]
-        quiet = False
-
-        try:
-            args = getopt.getopt(optionlist, "hq", [
-                "help", "config=", "quiet"])[0]
-        except getopt.GetoptError as ex:
-            print("Error: Invalid option \"{0}\"".format(ex.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt in ('-q', '--quiet'):
-                quiet = True
-        wallabag_update.update(entry_id, toggle_star=True, quiet=quiet)
 
     if command == "delete":
         if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
