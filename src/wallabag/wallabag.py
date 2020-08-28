@@ -64,17 +64,27 @@ def show(entry_id, color, raw, html):
 
 
 @cli.command()
-@click.option('-q', '--quiet', default=False)
+@click.option('-q', '--quiet', default=False, is_flag=True)
 @click.argument('entry_id', required=True)
 def read(entry_id, quiet):
     wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
 
 
 @cli.command()
-@click.option('-q', '--quiet', default=False)
+@click.option('-q', '--quiet', default=False, is_flag=True)
 @click.argument('entry_id', required=True)
 def star(entry_id, quiet):
     wallabag_update.update(entry_id, toggle_star=True, quiet=quiet)
+
+
+@cli.command()
+@click.option('-t', '--title', default="")
+@click.option('-r', '--read', default=False, is_flag=True)
+@click.option('-s', '--starred', default=False, is_flag=True)
+@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.argument('url', required=True)
+def add(url, title, read, starred, quiet):
+    wallabag_add.add(url, title, starred, read, quiet)
 
 
 @click.command()
@@ -148,41 +158,6 @@ def main(config):
                 wallabag_config.start(False, False, password, oauth)
         else:
             wallabag_config.start()
-
-    if command == "add":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing URL to add")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        url = argv[len(argv) - 1]
-        title = None
-        star = False
-        read = False
-        quiet = False
-
-        try:
-            args = getopt.getopt(optionlist, "ht:srq", [
-                "help", "config=", "title=", "starred", "read", "quiet"])[0]
-        except getopt.GetoptError as ex:
-            print("Error: Invalid option \"{0}\"".format(ex.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt in ('-t', '--title'):
-                title = arg
-            if opt in ('-s', '--starred'):
-                star = True
-            if opt in ('-r', '--read'):
-                read = True
-            if opt in ('-q', '--quiet'):
-                quiet = True
-        wallabag_add.add(url, title, star, read, quiet)
 
     if command == "update":
         if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
