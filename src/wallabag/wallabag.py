@@ -55,8 +55,12 @@ def list(starred, read, all, oldest, trim_output, count, quantity):
 
 
 @cli.command()
-def show():
-    click.echo("show")
+@click.option('-c/-n', '--color/--no-color', default=True)
+@click.option('-r', '--raw', default=False, is_flag=True)
+@click.option('-t', '--html', default=False, is_flag=True)
+@click.argument('entry_id', required=True)
+def show(color, entry_id, raw, html):
+    wallabag_show.show(entry_id, color, raw, html)
 
 
 @click.command()
@@ -346,35 +350,3 @@ def main(config):
         else:
             wallabag_list.list_entries(
                 count, filter_read, filter_starred, oldest, trim)
-
-    if command == "show":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing entry-id.")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        entry_id = argv[len(argv) - 1]
-        color = True
-        raw = False
-        html = False
-
-        try:
-            args = getopt.getopt(optionlist, "hr", [
-                "help", "no-color", "raw", "html", "config="])[0]
-        except getopt.GetoptError as ex:
-            print("Error: Invalid option \"{0}\"".format(ex.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt == "--no-color":
-                color = False
-            if opt in ("-r", "--raw"):
-                raw = True
-            if opt == "--html":
-                html = True
-        wallabag_show.show(entry_id, color, raw, html)
