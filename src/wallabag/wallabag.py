@@ -95,6 +95,19 @@ def delete(entry_id, force, quiet):
     wallabag_delete.delete(entry_id, force, quiet)
 
 
+@cli.command()
+@click.option('-t', '--title', default="")
+@click.option('-r', '--toggle-read', is_flag=True)
+@click.option('-s', '--toggle-starred', is_flag=True)
+@click.option('-q', '--quiet', is_flag=True)
+@click.argument('entry_id', required=True)
+def update(entry_id, title, toggle_read, toggle_starred, quiet):
+    if not title and not toggle_read and not toggle_starred:
+        click.echo("Error: No parameter given.")
+        exit(-1)
+    wallabag_update.update(entry_id, toggle_read, toggle_starred, title, quiet)
+
+
 @click.command()
 def main(config):
     command = None
@@ -166,49 +179,6 @@ def main(config):
                 wallabag_config.start(False, False, password, oauth)
         else:
             wallabag_config.start()
-
-    if command == "update":
-        if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
-            help(argv[0], command)
-            exit(0)
-
-        if len(argv) < 3:
-            print("Error: Missing entry-id.")
-            print()
-            exit(-1)
-
-        optionlist = argv[2:len(argv) - 1]
-        entry_id = argv[len(argv) - 1]
-        title = None
-        toggle_star = False
-        toggle_read = False
-        set_required_parameter = False
-        quiet = False
-
-        try:
-            args = getopt.getopt(optionlist, "ht:srq", [
-                "help", "config=", "title=", "starred", "read", "quiet"])[0]
-        except getopt.GetoptError as ex:
-            print("Error: Invalid option \"{0}\"".format(ex.opt))
-            print()
-            exit(-1)
-        for opt, arg in args:
-            if opt in ('-t', '--title'):
-                title = arg
-                set_required_parameter = True
-            if opt in ('-s', '--starred'):
-                toggle_star = True
-                set_required_parameter = True
-            if opt in ('-r', '--read'):
-                toggle_read = True
-                set_required_parameter = True
-            if opt in ('-q', '--quiet'):
-                quiet = True
-        if not set_required_parameter:
-            print("Error: No parameter given.")
-            print()
-            exit(-1)
-        wallabag_update.update(entry_id, toggle_read, toggle_star, title, quiet)
 
     if command == "list":
         if "-h" in argv[2:len(argv)] or "--help" in argv[2:len(argv)]:
