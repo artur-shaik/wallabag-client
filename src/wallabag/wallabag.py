@@ -18,7 +18,7 @@ from . import wallabag_update
 
 
 @click.group()
-@click.option('--config', help='configuration file')
+@click.option('--config', help='Use custom configuration file')
 def cli(config):
     # Workaround for default non-unicode encodings in the
     # Windows cmd and Powershell
@@ -50,15 +50,27 @@ Would you like to create it now? [Y/n]
 
 
 @cli.command()
-@click.option('-s/-u', '--starred/--unstarred', default=None)
-@click.option('-r/-n', '--read/--unread', default=None)
-@click.option('-a', '--all', default=False, is_flag=True)
-@click.option('-o', '--oldest', default=False, is_flag=True)
-@click.option('-t', '--trim-output', default=False, is_flag=True)
-@click.option('-c', '--count', default=False, is_flag=True)
-@click.option('-q', '--quantity', type=click.INT)
+@click.option('-s/-u', '--starred/--unstarred', default=None,
+              help="Show only starred/unstarred entries.")
+@click.option('-r/-n', '--read/--unread', default=None,
+              help="Show only read/unread entries.")
+@click.option('-a', '--all', default=False, is_flag=True,
+              help="Show read as well as unread entries.")
+@click.option('-o', '--oldest', default=False, is_flag=True,
+              help="Show oldest matches instead of the newest.")
+@click.option('-t', '--trim-output', default=False, is_flag=True,
+              help="Trim the titles to fit the length of the cli.")
+@click.option('-c', '--count', default=False, is_flag=True,
+              help="Show a sum of matching entries.")
+@click.option('-q', '--quantity', type=click.INT,
+              help="Set the number of entries to show.")
 @need_config
 def list(starred, read, all, oldest, trim_output, count, quantity):
+    """
+    List the entries on the wallabag account.
+
+    Gives a summary of entries in wallabag. Use options to filter the results.
+    """
     if all:
         read = None
         starred = None
@@ -72,58 +84,102 @@ def list(starred, read, all, oldest, trim_output, count, quantity):
 
 @cli.command()
 @click.option('-c/-n', '--color/--no-color', default=True)
-@click.option('-r', '--raw', default=False, is_flag=True)
-@click.option('-t', '--html', default=False, is_flag=True)
+@click.option('-r', '--raw', default=False, is_flag=True,
+              help="Disable wordwise trimming.")
+@click.option('-t', '--html', default=False, is_flag=True,
+              help="Show the entry as html instead of optimized output for \
+the cli.")
 @click.argument('entry_id', required=True)
 @need_config
 def show(entry_id, color, raw, html):
+    """
+    Show the text of an entry.
+
+    The ENTRY_ID can be found with `list` command.
+    """
     wallabag_show.show(entry_id, color, raw, html)
 
 
 @cli.command()
-@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 def read(entry_id, quiet):
+    """
+    Toggle the read-status of an existing entry.
+
+    This is an alias for `update --toggle-read <ENTRY_ID>` command.
+
+    The ENTRY_ID can be found with `list` command.
+    """
     wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
 
 
 @cli.command()
-@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 def star(entry_id, quiet):
+    """
+    Toggle the starred-status of an existing entry.
+
+    This is an alias for `update --toggle-starred <ENTRY_ID>` command.
+
+    The ENTRY_ID can be found with `list` command.
+    """
     wallabag_update.update(entry_id, toggle_star=True, quiet=quiet)
 
 
 @cli.command()
-@click.option('-t', '--title', default="")
-@click.option('-r', '--read', default=False, is_flag=True)
-@click.option('-s', '--starred', default=False, is_flag=True)
-@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.option('-t', '--title', default="", help="Add a custom title.")
+@click.option('-r', '--read', default=False, is_flag=True,
+              help="Mark as read.")
+@click.option('-s', '--starred', default=False, is_flag=True,
+              help="Mark as starred.")
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
 @click.argument('url', required=True)
 @need_config
 def add(url, title, read, starred, quiet):
+    """Add a new entry to wallabag."""
     wallabag_add.add(url, title, starred, read, quiet)
 
 
 @cli.command()
-@click.option('-f', '--force', default=False, is_flag=True)
-@click.option('-q', '--quiet', default=False, is_flag=True)
+@click.option('-f', '--force', default=False, is_flag=True,
+              help="Do not ask before deletion.")
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 def delete(entry_id, force, quiet):
+    """
+    Delete an entry from wallabag.
+
+    The ENTRY_ID can be found with `list` command.
+    """
     wallabag_delete.delete(entry_id, force, quiet)
 
 
 @cli.command()
-@click.option('-t', '--title', default="")
-@click.option('-r', '--toggle-read', is_flag=True)
-@click.option('-s', '--toggle-starred', is_flag=True)
-@click.option('-q', '--quiet', is_flag=True)
+@click.option('-t', '--title', default="", help="Change the title.")
+@click.option('-r', '--toggle-read', is_flag=True,
+              help="Toggle the read status")
+@click.option('-s', '--toggle-starred', is_flag=True,
+              help="Toggle the starred status")
+@click.option('-q', '--quiet', is_flag=True,
+              help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 def update(entry_id, title, toggle_read, toggle_starred, quiet):
+    """
+        Toggle the read or starred status or change the title
+        of an existing entry.
+
+        The ENTRY_ID can be found with `list` command.
+    """
     if not title and not toggle_read and not toggle_starred:
         click.echo("Error: No parameter given.")
         exit(-1)
@@ -131,10 +187,14 @@ def update(entry_id, title, toggle_read, toggle_starred, quiet):
 
 
 @cli.command()
-@click.option('-c', '--check', is_flag=True)
-@click.option('-p', '--password', is_flag=True)
-@click.option('-o', '--oauth', is_flag=True)
+@click.option('-c', '--check', is_flag=True,
+              help="Check the config for errors.")
+@click.option('-p', '--password', is_flag=True,
+              help="Change the wallabag password.")
+@click.option('-o', '--oauth', is_flag=True,
+              help="Change the wallabag client credentials.")
 def config(check, password, oauth):
+    """Start the configuration."""
     if check:
         wallabag_config.check()
         exit(0)
