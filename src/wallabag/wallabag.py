@@ -8,9 +8,15 @@ import platform
 import subprocess
 from sys import exit
 
-from . import conf
+from wallabag.configurator import (
+        Configurator,
+        PasswordOption,
+        ClientOption,
+        SecretOption,
+    )
+from wallabag.config import Configs
+
 from . import wallabag_add
-from . import wallabag_config
 from . import wallabag_delete
 from . import wallabag_list
 from . import wallabag_show
@@ -19,7 +25,8 @@ from . import wallabag_update
 
 @click.group()
 @click.option('--config', help='Use custom configuration file')
-def cli(config):
+@click.pass_context
+def cli(ctx, config):
     # Workaround for default non-unicode encodings in the
     # Windows cmd and Powershell
     # -> Analyze encoding and set to utf-8
@@ -28,20 +35,20 @@ def cli(config):
         if "65001" not in codepage:
             subprocess.check_output(['chcp', '65001'], shell=True)
 
-    if config:
-        conf.set_path(config)
+    ctx.obj = Configs(config)
 
 
 def need_config(func):
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if not conf.is_valid():
+    @click.pass_context
+    def wrapper(ctx, *args, **kwargs):
+        if not ctx.obj.is_valid():
             i = input(
                 """Could not find a valid config.
 Would you like to create it now? [Y/n]
 """)
             if str.lower(i) in ["y", "yes", ""]:
-                wallabag_config.start()
+                Configurator(ctx.obj).start()
             else:
                 exit(0)
         func(*args, **kwargs)
@@ -193,19 +200,27 @@ def update(entry_id, title, toggle_read, toggle_starred, quiet):
               help="Change the wallabag password.")
 @click.option('-o', '--oauth', is_flag=True,
               help="Change the wallabag client credentials.")
-def config(check, password, oauth):
-    """Start the configuration."""
+@click.pass_context
+def config(ctx, check, password, oauth):
+    config = ctx.obj
+    configurator = Configurator(config)
     if check:
-        wallabag_config.check()
+        configurator.check()
         exit(0)
     if password or oauth:
-        if not conf.is_valid():
+        if not config.is_valid():
             click.echo(
                 """Invalid existing config.
 Therefore you have to enter all values.
                 """)
-            wallabag_config.start()
+            configurator.start()
         else:
-            wallabag_config.start(False, False, password, oauth)
+            options = []
+            if password:
+                options.append(PasswordOption())
+            if oauth:
+                options.append(ClientOption())
+                options.append(SecretOption())
+            configurator.start(options)
     else:
-        wallabag_config.start()
+        configurator.start()

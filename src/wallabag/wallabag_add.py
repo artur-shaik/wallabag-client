@@ -6,7 +6,7 @@ import re
 from sys import exit
 
 from . import api
-from . import conf
+from wallabag.config import Configs as conf
 
 
 def add(target_url, title=None, star=False, read=False, quiet=False):

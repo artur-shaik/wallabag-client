@@ -8,8 +8,8 @@ import sys
 from sys import exit
 
 from . import api
-from . import conf
 from . import entry
+from wallabag.config import Configs as conf
 
 
 def list_entries(custom_quantity=None, filter_read=False, filter_starred=None, oldest=False, trim=True):

@@ -5,8 +5,8 @@ import json
 from sys import exit
 
 from . import api
-from . import conf
 from . import entry
+from wallabag.config import Configs as conf
 
 
 def delete(entry_id, force=False, quiet=False):

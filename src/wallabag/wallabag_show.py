@@ -10,8 +10,8 @@ import sys
 from bs4 import BeautifulSoup
 
 from . import api
-from . import conf
 from . import entry
+from wallabag.config import Configs as conf
 
 
 def show(entry_id, colors=True, raw=False, html=False):
