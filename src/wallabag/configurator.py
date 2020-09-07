@@ -29,7 +29,7 @@ class Validator():
 
     def __init__(self, config):
         self.config = config
-        self.testresponse = {
+        self.response = {
             'invalid_grant': (
                 False, None, [UsernameOption(), PasswordOption()]),
             'invalid_client': (
@@ -37,12 +37,12 @@ class Validator():
         }
 
     def check_oauth(self):
-        testresponse = api.api_token()
-        if testresponse.has_error():
-            if testresponse.error == api.Error.http_bad_request:
-                click.echo(testresponse.error_description)
-                return self.testresponse[testresponse.error_text]
-            return (False, testresponse.error_description)
+        response = api.api_token()
+        if response.has_error():
+            if response.error == api.Error.http_bad_request:
+                click.echo(response.error_description)
+                return self.response[response.error_text]
+            return (False, response.error_description)
         return (True, "The configuration is ok.")
 
     def check(self):
@@ -135,11 +135,11 @@ class ServerurlOption(ConfigOption):
                 else value
 
     def __check_api_verion(self, value):
-        testresponse = api.api_version(value)
-        if testresponse.has_error():
-            raise ValueError(testresponse.error_text)
+        response = api.api_version(value)
+        if response.has_error():
+            raise ValueError(response.error_text)
 
-        if not api.is_minimum_version(testresponse):
+        if not api.is_minimum_version(response):
             raise ValueError(
                     "Your wallabag instance is too old. \
                             You need at least version \
