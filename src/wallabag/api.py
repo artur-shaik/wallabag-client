@@ -197,7 +197,6 @@ def is_minimum_version(version_response):
     Returns True if the wallabag-instance meets the required minimum version.
     """
     versionstring = version_response.response
-    print(versionstring)
 
     if not re.compile('"\\d+\\.\\d+\\.\\d+"').match(versionstring):
         return False

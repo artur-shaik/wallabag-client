@@ -19,56 +19,48 @@ class Configurator():
         if not options:
             options = ConfigOption.get_all()
         for option in options:
-            (sec, opt) = option.get_option_name()
-            option.set_default(self.config.get(sec, opt))
-            while True:
-                value = click.prompt(option.get_prompt(),
-                                     default=option.get_default())
-                try:
-                    option.check_and_apply(value)
-                    self.config.set_config(
-                            sec, opt, option.get_value())
-                    break
-                except ValueError as e:
-                    click.echo(e)
+            while not option.setup(self.config):
+                pass
 
         self.config.save()
-        self._check_oauth()
+
+
+class Validator():
+
+    def __init__(self, config):
+        self.config = config
+        self.testresponse = {
+            'invalid_grant': (
+                False, None, [UsernameOption(), PasswordOption()]),
+            'invalid_client': (
+                False, None, [ClientOption(), SecretOption()])
+        }
+
+    def check_oauth(self):
+        testresponse = api.api_token()
+        if testresponse.has_error():
+            if testresponse.error == api.Error.http_bad_request:
+                click.echo(testresponse.error_description)
+                return self.testresponse[testresponse.error_text]
+            return (False, testresponse.error_description)
+        return (True, "The configuration is ok.")
 
     def check(self):
         if not self.config.is_valid():
-            raise ValueError("The config is missing or incomplete.")
+            return (False, "The config is missing or incomplete.")
 
         response = api.api_version()
         if response.has_error():
-            raise ValueError("The server or the API is not reachable.")
+            return (False, "The server or the API is not reachable.")
 
         if not api.is_minimum_version(response):
-            raise ValueError(
+            return (False,
                     "The version of the wallabag instance is too old.")
 
-        response = api.api_token()
-        if response.has_error():
-            raise ValueError(response.error_description)
+        if api.api_token().has_error():
+            return (False, response.error_description)
 
-        click.echo("The config is suitable.")
-
-    def _check_oauth(self):
-        testresponse = api.api_token()
-        if testresponse.has_error():
-            self.config.save()
-            if testresponse.error == api.Error.http_bad_request:
-                click.echo(testresponse.error_description)
-                if testresponse.error_text == "invalid_grant":
-                    self.start([UsernameOption(), PasswordOption()])
-                    return
-                elif testresponse.error_text == "invalid_client":
-                    self.start([ClientOption(), SecretOption()])
-                    return
-            raise ValueError(testresponse.error_description)
-
-        self.config.save()
-        click.echo("The config was saved successfully.")
+        return (True, "The config is suitable.")
 
 
 class ConfigOption(ABC):
@@ -111,6 +103,19 @@ class ConfigOption(ABC):
     def get_value(self):
         return self.value
 
+    def setup(self, config):
+        (sec, opt) = self.get_option_name()
+        self.set_default(config.get(sec, opt))
+        value = click.prompt(self.get_prompt(),
+                             default=self.get_default())
+        try:
+            self.check_and_apply(value)
+        except ValueError as e:
+            click.echo(e)
+            return False
+        config.set_config(sec, opt, self.get_value())
+        return True
+
 
 class ServerurlOption(ConfigOption):
 
@@ -119,18 +124,17 @@ class ServerurlOption(ConfigOption):
     prompt = 'Enter the url of your Wallabag instance'
     default = 'https://www.wallabag.com/'
 
-    def check_and_apply(self, value):
-        value = value.strip()
+    def __check_existence_or_default(self, value):
+        return value or self.get_default()
 
-        if not value:
-            value = self.get_default()
+    def __check_trailing_space(self, value):
+        return value[:-1] if value[-1] == '/' else value
 
-        if value[-1] == '/':
-            value = value[:-1]
+    def __check_https(self, value):
+        return f"https://{value}" if not ServerurlOption.RE_HTTP.match(value)\
+                else value
 
-        if not ServerurlOption.RE_HTTP.match(value):
-            value = "https://" + value
-
+    def __check_api_verion(self, value):
         testresponse = api.api_version(value)
         if testresponse.has_error():
             raise ValueError(testresponse.error_text)
@@ -141,6 +145,11 @@ class ServerurlOption(ConfigOption):
                             You need at least version \
                             {api.MINIMUM_API_VERSION_HR}.")
 
+    def check_and_apply(self, value):
+        value = self.__check_existence_or_default(value.strip())
+        value = self.__check_trailing_space(value)
+        value = self.__check_https(value)
+        self.__check_api_verion(value)
         self.value = value
 
     def get_option_name(self):

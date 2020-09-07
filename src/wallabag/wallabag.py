@@ -2,19 +2,21 @@
 """
 The main entry point of wallabag-cli.
 """
-import click
 import functools
 import platform
 import subprocess
 from sys import exit
 
+import click
+
+from wallabag.config import Configs
 from wallabag.configurator import (
+        ClientOption,
         Configurator,
         PasswordOption,
-        ClientOption,
         SecretOption,
+        Validator,
     )
-from wallabag.config import Configs
 
 from . import wallabag_add
 from . import wallabag_delete
@@ -203,24 +205,26 @@ def update(entry_id, title, toggle_read, toggle_starred, quiet):
 @click.pass_context
 def config(ctx, check, password, oauth):
     config = ctx.obj
-    configurator = Configurator(config)
     if check:
-        configurator.check()
-        exit(0)
+        (result, msg) = Validator(config).check()
+        click.echo(msg)
+        exit(result)
+    options = []
     if password or oauth:
         if not config.is_valid():
             click.echo(
-                """Invalid existing config.
-Therefore you have to enter all values.
-                """)
-            configurator.start()
+                "Invalid existing config.\
+                        Therefore you have to enter all values.")
         else:
-            options = []
             if password:
                 options.append(PasswordOption())
             if oauth:
                 options.append(ClientOption())
                 options.append(SecretOption())
-            configurator.start(options)
-    else:
-        configurator.start()
+    configurator = Configurator(config)
+    while True:
+        configurator.start(options)
+        (result, msg, options) = Validator(config).check_oauth()
+        if result or not options:
+            click.echo(msg)
+            exit(0)
