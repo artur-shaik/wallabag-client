@@ -75,6 +75,13 @@ class ConfigOption(ABC):
     def __init__(self, default=None):
         self.set_default(default)
 
+    def _check_existence_or_default(self, value):
+        if not value:
+            if not self.get_default():
+                raise ValueError("Empty value")
+            return self.get_default()
+        return value
+
     def get_prompt(self):
         return self.prompt
 
@@ -84,17 +91,6 @@ class ConfigOption(ABC):
     def set_default(self, default):
         if default:
             self.default = default
-
-    def check_and_apply(self, value):
-        value = value.strip()
-
-        if not value:
-            if self.get_default():
-                value = self.get_default()
-            else:
-                raise ValueError("Empty value")
-
-        self.value = value
 
     @abstractmethod
     def get_option_name(self):
@@ -124,9 +120,6 @@ class ServerurlOption(ConfigOption):
     prompt = 'Enter the url of your Wallabag instance'
     default = 'https://www.wallabag.com/'
 
-    def __check_existence_or_default(self, value):
-        return value or self.get_default()
-
     def __check_trailing_space(self, value):
         return value[:-1] if value[-1] == '/' else value
 
@@ -146,7 +139,7 @@ class ServerurlOption(ConfigOption):
                             {api.MINIMUM_API_VERSION_HR}.")
 
     def check_and_apply(self, value):
-        value = self.__check_existence_or_default(value.strip())
+        value = self._check_existence_or_default(value.strip())
         value = self.__check_trailing_space(value)
         value = self.__check_https(value)
         self.__check_api_verion(value)
