@@ -74,12 +74,14 @@ Would you like to create it now? [Y/n]
 @click.option('-q', '--quantity', type=click.INT,
               help="Set the number of entries to show.")
 @need_config
-def list(starred, read, all, oldest, trim_output, count, quantity):
+@click.pass_context
+def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
     """
     List the entries on the wallabag account.
 
     Gives a summary of entries in wallabag. Use options to filter the results.
     """
+    config = ctx.obj
     if all:
         read = None
         starred = None
@@ -88,7 +90,7 @@ def list(starred, read, all, oldest, trim_output, count, quantity):
         wallabag_list.count_entries(read, starred)
     else:
         wallabag_list.list_entries(
-            quantity, read, starred, oldest, trim_output)
+            config, quantity, read, starred, oldest, trim_output)
 
 
 @cli.command()

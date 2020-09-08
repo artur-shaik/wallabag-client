@@ -5,9 +5,8 @@ from abc import ABC, abstractmethod
 
 import click
 
+from wallabag.api import Api, Error
 from wallabag.config import Options, Sections
-
-from . import api
 
 
 class Configurator():
@@ -17,7 +16,7 @@ class Configurator():
 
     def start(self, options=[]):
         if not options:
-            options = ConfigOption.get_all()
+            options = ConfigOption.get_all(self.config)
         for option in options:
             while not option.setup(self.config):
                 pass
@@ -29,6 +28,7 @@ class Validator():
 
     def __init__(self, config):
         self.config = config
+        self.api = Api(config)
         self.response = {
             'invalid_grant': (
                 False, None, [UsernameOption(), PasswordOption()]),
@@ -37,27 +37,27 @@ class Validator():
         }
 
     def check_oauth(self):
-        response = api.api_token()
+        response = self.api.api_token()
         if response.has_error():
-            if response.error == api.Error.http_bad_request:
+            if response.error == Error.http_bad_request:
                 click.echo(response.error_description)
                 return self.response[response.error_text]
-            return (False, response.error_description)
-        return (True, "The configuration is ok.")
+            return (False, response.error_description, None)
+        return (True, "The configuration is ok.", None)
 
     def check(self):
         if not self.config.is_valid():
             return (False, "The config is missing or incomplete.")
 
-        response = api.api_version()
+        response = self.api.api_version()
         if response.has_error():
             return (False, "The server or the API is not reachable.")
 
-        if not api.is_minimum_version(response):
+        if not self.api.is_minimum_version(response):
             return (False,
                     "The version of the wallabag instance is too old.")
 
-        if api.api_token().has_error():
+        if self.api.api_token().has_error():
             return (False, response.error_description)
 
         return (True, "The config is suitable.")
@@ -68,9 +68,9 @@ class ConfigOption(ABC):
     prompt = ''
     default = ''
 
-    def get_all():
-        return [ServerurlOption(), UsernameOption(), PasswordOption(),
-                ClientOption(), SecretOption()]
+    def get_all(config):
+        return [ServerurlOption(Api(config)), UsernameOption(),
+                PasswordOption(), ClientOption(), SecretOption()]
 
     def __init__(self, default=None):
         self.set_default(default)
@@ -96,6 +96,9 @@ class ConfigOption(ABC):
     def get_option_name(self):
         pass
 
+    def check_and_apply(self, value):
+        self.value = self._check_existence_or_default(value.strip())
+
     def get_value(self):
         return self.value
 
@@ -120,6 +123,9 @@ class ServerurlOption(ConfigOption):
     prompt = 'Enter the url of your Wallabag instance'
     default = 'https://www.wallabag.com/'
 
+    def __init__(self, api):
+        self.api = api
+
     def __check_trailing_space(self, value):
         return value[:-1] if value[-1] == '/' else value
 
@@ -128,11 +134,11 @@ class ServerurlOption(ConfigOption):
                 else value
 
     def __check_api_verion(self, value):
-        response = api.api_version(value)
+        response = self.api.api_version(value)
         if response.has_error():
             raise ValueError(response.error_text)
 
-        if not api.is_minimum_version(response):
+        if not self.api.is_minimum_version(response):
             raise ValueError(
                     "Your wallabag instance is too old. \
                             You need at least version \

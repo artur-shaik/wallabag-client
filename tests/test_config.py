@@ -85,11 +85,11 @@ class TestConfigs():
         assert self.configs.is_valid()
 
     def test_set_config(self):
-        self.configs.set_config(Sections.TOKEN, Options.EXPIRES, str(500))
+        self.configs.set(Sections.TOKEN, Options.EXPIRES, str(500))
         assert self.configs.getint(Sections.TOKEN, Options.EXPIRES) == 500
 
     def test_set_config_new(self):
-        self.configs.set_config(Sections.TOKEN, Options.ACCESS_TOKEN, 'abba')
+        self.configs.set(Sections.TOKEN, Options.ACCESS_TOKEN, 'abba')
         assert self.configs.get(Sections.TOKEN, Options.ACCESS_TOKEN) == 'abba'
 
     def test_load_or_create(self, monkeypatch):
@@ -138,7 +138,7 @@ class TestConfigs():
             'password',
             ['123456', 'password', 'secret'])
     def test_encryption(self, password):
-        self.configs.set_config(Sections.API, Options.PASSWORD, password)
+        self.configs.set(Sections.API, Options.PASSWORD, password)
         encrypted = self.configs.config.get(Sections.API, Options.PASSWORD)
         plain = self.configs.get(Sections.API, Options.PASSWORD)
 

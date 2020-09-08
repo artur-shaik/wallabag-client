@@ -1,23 +1,20 @@
-"""
-List existing entries
-"""
 import json
 import os
 import platform
 import sys
 from sys import exit
 
-from . import api
-from . import entry
+from wallabag.api import Api, OAuthException
 from wallabag.config import Configs as conf
 
+from . import entry
 
-def list_entries(custom_quantity=None, filter_read=False, filter_starred=None, oldest=False, trim=True):
-    """
-    Main function for listing wallabag entries.
-    """
-    conf.load()
 
+def list_entries(
+        config,
+        custom_quantity=None, filter_read=False,
+        filter_starred=None, oldest=False, trim=True):
+    api = Api(config)
     quantity = None
     if custom_quantity is None:
         try:
@@ -36,7 +33,7 @@ def list_entries(custom_quantity=None, filter_read=False, filter_starred=None, o
                                             request.error_description))
             exit(-1)
         response = json.loads(request.response)
-    except api.OAuthException as ex:
+    except OAuthException as ex:
         print("Error: {0}".format(ex.text))
         print()
         exit(-1)

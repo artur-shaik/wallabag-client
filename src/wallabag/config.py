@@ -62,7 +62,7 @@ class Configs():
                         CONFIG_WALLABAG_DIR,
                         CONFIG_FILENAME)
 
-    def set_config(self, section, name, value):
+    def set(self, section, name, value):
         if not self.config.has_section(section):
             self.config.add_section(section)
         if (section, name) in Configs.ENCRYPT_VALUES:
@@ -78,8 +78,11 @@ class Configs():
     def getint(self, section, name, fallback=0):
         return self.config.getint(section, name, fallback=fallback)
 
+    def getfloat(self, section, name, fallback=0):
+        return self.config.getfloat(section, name, fallback=fallback)
+
     def is_token_expired(self):
-        return self.getint('token', 'expires', 0) - time.time() < 0
+        return self.getfloat('token', 'expires', 0) - time.time() < 0
 
     def is_valid(self):
         options_to_check = ((Sections.API, Options.SERVERURL),
