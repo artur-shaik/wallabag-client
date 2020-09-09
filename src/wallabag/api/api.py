@@ -4,7 +4,9 @@ Wallabag API accesses.
 import json
 import re
 import time
+from abc import ABC, abstractmethod
 from enum import Enum, auto
+
 from packaging import version
 
 import requests
@@ -15,12 +17,30 @@ MINIMUM_API_VERSION = 2, 1, 1
 MINIMUM_API_VERSION_HR = "2.1.1"
 
 
-class OAuthException(Exception):
-    """
-    An exception that occurs when the request of an oauth2-TOKEN fails.
-    """
+class ApiException(Exception):
+
+    error_text = None
+    error_description = None
+
+
+class OAuthException(ApiException):
+
     def __init__(self, text):
-        self.text = text
+        self.error_text = text
+
+
+class RequestException(ApiException):
+
+    def __init__(self, error_text, error_description):
+        self.error_text = error_text
+        self.error_description = error_description
+
+
+class UnsupportedMethodException(ApiException):
+
+    def __init__(self, method_name):
+        self.error_text = 'Unsupported method called'
+        self.error_description = f'Method: {method_name}'
 
 
 class Error(Enum):
@@ -118,18 +138,21 @@ class Response:
         return self.error != Error.OK
 
 
-class Api():
+class Api(ABC):
 
     VERSION_RE = re.compile('"\\d+\\.\\d+\\.\\d+"')
 
     def __init__(self, config):
         self.config = config
 
-    def __get_api_url(self, api_method, url=None):
-        if api_method in ApiMethod:
-            serverurl = url or self.config.get(Sections.API, Options.SERVERURL)
-            return serverurl + api_method.value
-        return None
+    def _build_url(self, api_method, url=None):
+        try:
+            if api_method in ApiMethod:
+                serverurl = url or self.config.get(
+                        Sections.API, Options.SERVERURL)
+                return serverurl + api_method.value
+        except TypeError:
+            raise UnsupportedMethodException(api_method)
 
     def __get_authorization_header(self):
         success, token_or_error = self.get_token()
@@ -138,7 +161,7 @@ class Api():
         else:
             return {'Authorization': f"Bearer {token_or_error}"}
 
-    def __make_request(self, type, url, headers=None, params=None, data=None):
+    def __make_request(self, type):
         request = None
 
         try:
@@ -150,8 +173,13 @@ class Api():
             }
 
             request = request_methods[type](
-                    url, headers=headers, params=params, data=data)
-            return Response(request.status_code, request.text)
+                    self.url, headers=self.headers,
+                    params=self.params, data=self.data)
+            response = Response(request.status_code, request.text)
+            if response.has_error():
+                raise RequestException(
+                        request.error_text, request.error_description)
+            return response
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.MissingSchema):
@@ -160,9 +188,8 @@ class Api():
     def __request_delete(self, url, headers=None):
         return self.__make_request(Verbs.DELETE, url, headers)
 
-    def __request_get(self, url, headers=None, params=None):
-        return self.__make_request(
-                Verbs.GET, url, headers=headers, params=params)
+    def _request_get(self):
+        return self.__make_request(Verbs.GET)
 
     def __request_post(self, url, headers=None, data=None):
         return self.__make_request(Verbs.POST, url, data=data, headers=headers)
@@ -188,7 +215,7 @@ class Api():
         return self.__request_get(url)
 
     def api_token(self, ):
-        url = self.__get_api_url(ApiMethod.TOKEN)
+        url = self._build_url(ApiMethod.TOKEN)
         data = {
             'grant_type': "password",
             'client_id': self.config.get(Sections.OAUTH2, Options.CLIENT),
@@ -196,7 +223,7 @@ class Api():
             'username': self.config.get(Sections.API, Options.USERNAME),
             'password': self.config.get(Sections.API, Options.PASSWORD)
         }
-        return self.__request_get(url, params=data)
+        return self._request_get(url, params=data)
 
     def api_add_entry(self, targeturl, title=None, star=False, read=False):
         url = self.__get_api_url(ApiMethod.ADD_ENTRY)
@@ -243,24 +270,26 @@ class Api():
             data['archive'] = 1 if read else 0
         return self.__request_patch(url, header, data)
 
-    def api_list_entries(
-            self, count, filter_read=None, filter_starred=None, oldest=False):
-        url = self.__get_api_url(ApiMethod.LIST_ENTRIES)
-        header = self.__get_authorization_header()
-        params = {
-            'perPage': count
-        }
+    @abstractmethod
+    def _make_request(self):
+        pass
 
-        if oldest:
-            params['order'] = "asc"
+    @abstractmethod
+    def _get_api_url(self):
+        pass
 
-        if filter_read is not None:
-            params['archive'] = 1 if filter_read else 0
+    def _get_params(self):
+        return None
 
-        if filter_starred is not None:
-            params['starred'] = 1 if filter_starred else 0
+    def _get_data(self):
+        return None
 
-        return self.__request_get(url, headers=header, params=params)
+    def request(self):
+        self.url = self._get_api_url()
+        self.headers = self.__get_authorization_header()
+        self.params = self._get_params()
+        self.data = self._get_data()
+        return self._make_request()
 
     def get_token(self, force_creation=False):
         if self.config.is_token_expired() or force_creation:

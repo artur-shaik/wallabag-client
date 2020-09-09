@@ -87,7 +87,7 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
         starred = None
 
     if count:
-        wallabag_list.count_entries(read, starred)
+        wallabag_list.count_entries(config, read, starred)
     else:
         wallabag_list.list_entries(
             config, quantity, read, starred, oldest, trim_output)

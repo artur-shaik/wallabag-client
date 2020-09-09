@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 import click
 
-from wallabag.api import Api, Error
+from wallabag.api.api import Api, Error
 from wallabag.config import Options, Sections
 
 

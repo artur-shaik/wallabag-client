@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from wallabag.api import Api, Response
+from wallabag.api.api import Api, Response
 from wallabag.config import Configs, Options, Sections
 from wallabag.configurator import (
         ClientOption, PasswordOption, SecretOption,

@@ -1,0 +1,105 @@
+# -*- coding: utf-8 -*-
+
+import pytest
+
+from wallabag.api.api import ApiMethod
+from wallabag.api.get_list_entries import GetListEntries
+from wallabag.config import Configs
+
+
+class TestGetEntriesList():
+
+    def setup_method(self, method):
+        self.config = Configs("/tmp/config")
+        self.config.config.read_string("""
+                [api]
+                serverurl = url
+                username = user
+                password = pass
+                [oauth2]
+                client = 100
+                secret = 100
+                """)
+
+    def test_api_url(self):
+        api = GetListEntries(self.config, {
+            GetListEntries.Params.COUNT: 10
+        })
+
+        assert "url" + ApiMethod.LIST_ENTRIES.value == api._get_api_url()
+
+    @pytest.mark.parametrize('count', [
+        (10, 10), (None, 0), (-10, 0)
+        ])
+    def test_params_count(self, count):
+        api = GetListEntries(self.config, {
+            GetListEntries.Params.COUNT: count[0]
+        })
+
+        params = api._get_params()
+        assert GetListEntries.ApiParams.PER_PAGE in params
+        assert params.get(GetListEntries.ApiParams.PER_PAGE) == count[1]
+
+    @pytest.mark.parametrize('values', [
+        ((
+            GetListEntries.Params.FILTER_READ,
+            GetListEntries.ApiParams.ARCHIVE
+            ), True, 1),
+        ((
+            GetListEntries.Params.FILTER_READ,
+            GetListEntries.ApiParams.ARCHIVE
+            ), None, None),
+        ((
+            GetListEntries.Params.FILTER_READ,
+            GetListEntries.ApiParams.ARCHIVE
+            ), False, 0),
+        ((
+            GetListEntries.Params.FILTER_READ,
+            GetListEntries.ApiParams.ARCHIVE
+            ), 'foo', None),
+        ((
+            GetListEntries.Params.FILTER_STARRED,
+            GetListEntries.ApiParams.STARRED
+            ), True, 1),
+        ((
+            GetListEntries.Params.FILTER_STARRED,
+            GetListEntries.ApiParams.STARRED
+            ), None, None),
+        ((
+            GetListEntries.Params.FILTER_STARRED,
+            GetListEntries.ApiParams.STARRED
+            ), False, 0),
+        ((
+            GetListEntries.Params.FILTER_STARRED,
+            GetListEntries.ApiParams.STARRED
+            ), 'foo', None)
+        ])
+    def test_bool_params(self, values):
+        api = GetListEntries(self.config, {
+            GetListEntries.Params.COUNT: 1,
+            values[0][0]: values[1]
+        })
+
+        params = api._get_params()
+        if values[2] is not None:
+            assert values[0][1] in params
+            assert params.get(values[0][1]) == values[2]
+        else:
+            assert values[0][1] not in params
+
+    @pytest.mark.parametrize('oldest', [
+        (True, GetListEntries.ApiValues.OLDEST.value.ASC),
+        (None, None), (False, None)
+        ])
+    def test_param_oldest(self, oldest):
+        api = GetListEntries(self.config, {
+            GetListEntries.Params.COUNT: 1,
+            GetListEntries.Params.OLDEST: oldest[0]
+        })
+
+        params = api._get_params()
+        if oldest[1]:
+            assert GetListEntries.ApiParams.OLDEST in params
+            assert oldest[1] == params.get(GetListEntries.ApiParams.OLDEST)
+        else:
+            assert GetListEntries.ApiParams.OLDEST not in params

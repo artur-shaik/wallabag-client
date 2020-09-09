@@ -4,8 +4,8 @@ import platform
 import sys
 from sys import exit
 
-from wallabag.api import Api, OAuthException
-from wallabag.config import Configs as conf
+from wallabag.api.api import ApiException
+from wallabag.api.get_list_entries import GetListEntries
 
 from . import entry
 
@@ -14,7 +14,6 @@ def list_entries(
         config,
         custom_quantity=None, filter_read=False,
         filter_starred=None, oldest=False, trim=True):
-    api = Api(config)
     quantity = None
     if custom_quantity is None:
         try:
@@ -26,15 +25,16 @@ def list_entries(
         quantity = custom_quantity
 
     try:
-        request = api.api_list_entries(
-            quantity, filter_read, filter_starred, oldest)
-        if request.has_error():
-            print("Error: {0} - {1}".format(request.error_text,
-                                            request.error_description))
-            exit(-1)
+        api = GetListEntries(config, {
+            GetListEntries.Params.COUNT: quantity,
+            GetListEntries.Params.FILTER_READ: filter_read,
+            GetListEntries.Params.FILTER_STARRED: filter_starred,
+            GetListEntries.Params.OLDEST: oldest
+        })
+        request = api.request()
         response = json.loads(request.response)
-    except OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
 
@@ -42,22 +42,16 @@ def list_entries(
     print_entries(entries, trim, (not oldest))
 
 
-def count_entries(filter_read=False, filter_starred=None):
-    """
-    Prints the number of entries to the standard output.
-    """
-    conf.load()
-
+def count_entries(config, filter_read=False, filter_starred=None):
     try:
-        request = api.api_list_entries(
-            sys.maxsize, filter_read, filter_starred)
-        if request.has_error():
-            print("Error: {0} - {1}".format(request.error_text,
-                                            request.error_description))
-            exit(-1)
-        response = json.loads(request.response)
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+        api = GetListEntries(config, {
+            GetListEntries.Params.COUNT: sys.maxsize,
+            GetListEntries.Params.FILTER_READ: filter_read,
+            GetListEntries.Params.FILTER_STARRED: filter_starred
+        })
+        response = json.loads(api.request().response)
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
     print(len(response["_embedded"]["items"]))
