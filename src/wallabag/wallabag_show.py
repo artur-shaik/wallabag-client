@@ -9,22 +9,17 @@ from sys import exit
 import sys
 from bs4 import BeautifulSoup
 
-from . import api
+from wallabag.api.api import ApiException, Error
+from wallabag.api.get_entry import GetEntry
 from . import entry
-from wallabag.config import Configs as conf
 
 
-def show(entry_id, colors=True, raw=False, html=False):
-    """
-    Main function for showing an entry.
-    """
-    conf.load()
+def show(config, entry_id, colors=True, raw=False, html=False):
     try:
-        request = api.api_get_entry(entry_id)
-        __handle_request_error(request)
-        entr = entry.Entry(json.loads(request.response))
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+        api = GetEntry(config, entry_id)
+        entr = entry.Entry(json.loads(api.request().response))
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
 
@@ -35,7 +30,7 @@ def show(entry_id, colors=True, raw=False, html=False):
     # piped output to file or other process
     except OSError:
         delimiter = "\n"
-        
+
     article = entr.content
     if not html:
         article = html2text(article, colors)
@@ -120,7 +115,7 @@ def __format_text(text):
 
 def __handle_request_error(request):
     if request.has_error():
-        if request.error == api.Error.http_forbidden or request.error == api.Error.http_not_found:
+        if request.error == Error.http_forbidden or request.error == Error.http_not_found:
             print("Error: Invalid entry id.")
             print()
             exit(-1)

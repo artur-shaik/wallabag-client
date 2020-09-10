@@ -102,13 +102,14 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
 the cli.")
 @click.argument('entry_id', required=True)
 @need_config
-def show(entry_id, color, raw, html):
+@click.pass_context
+def show(ctx, entry_id, color, raw, html):
     """
     Show the text of an entry.
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_show.show(entry_id, color, raw, html)
+    wallabag_show.show(ctx.obj, entry_id, color, raw, html)
 
 
 @cli.command()

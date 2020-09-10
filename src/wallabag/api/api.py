@@ -22,18 +22,21 @@ class ApiException(Exception):
     error_text = None
     error_description = None
 
+    def __init__(self, error_text=None, error_description=None):
+        self.error_text = error_text
+        self.error_description = error_description
+
 
 class OAuthException(ApiException):
-
-    def __init__(self, text):
-        self.error_text = text
+    pass
 
 
 class RequestException(ApiException):
+    pass
 
-    def __init__(self, error_text, error_description):
-        self.error_text = error_text
-        self.error_description = error_description
+
+class ValueException(ApiException):
+    pass
 
 
 class UnsupportedMethodException(ApiException):
@@ -258,11 +261,6 @@ class Api(ABC):
             'url': url
         }
         return self.__request_get(url, headers=header, params=data)
-
-    def api_get_entry(self, entry_id):
-        url = self.__get_api_url(ApiMethod.GET_ENTRY).format(entry_id)
-        header = self.__get_authorization_header()
-        return self.__request_get(url, header)
 
     def api_update_entry(self, entry_id, new_title=None, star=None, read=None):
         url = self.__get_api_url(ApiMethod.UPDATE_ENTRY).format(entry_id)
