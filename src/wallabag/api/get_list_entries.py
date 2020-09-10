@@ -29,8 +29,8 @@ class GetListEntries(Api):
         Api.__init__(self, config)
         self.params = params
 
-    def _make_request(self):
-        return self._request_get()
+    def _make_request(self, request):
+        return self._request_get(request)
 
     def _get_api_url(self):
         return self._build_url(GetListEntries.API_METHOD)

@@ -91,9 +91,9 @@ class Response:
 
     response = ""
 
-    def __init__(self, status_code, http_response):
-        self.http_code = status_code
-        self.response = http_response
+    def __init__(self, response):
+        self.http_code = response.status_code
+        self.response = response.text
 
         # DNS not found
         if self.http_code == 0:
@@ -142,6 +142,13 @@ class Api(ABC):
 
     VERSION_RE = re.compile('"\\d+\\.\\d+\\.\\d+"')
 
+    class Request:
+        type = None
+        url = None
+        api_params = None
+        headers = None
+        data = None
+
     def __init__(self, config):
         self.config = config
 
@@ -161,9 +168,7 @@ class Api(ABC):
         else:
             return {'Authorization': f"Bearer {token_or_error}"}
 
-    def __make_request(self, type):
-        request = None
-
+    def __make_request(self, request):
         try:
             request_methods = {
                 Verbs.GET: requests.get,
@@ -172,13 +177,12 @@ class Api(ABC):
                 Verbs.PATCH: requests.patch
             }
 
-            request = request_methods[type](
-                    self.url, headers=self.headers,
-                    params=self.params, data=self.data)
-            response = Response(request.status_code, request.text)
+            response = Response(request_methods[request.type](
+                    request.url, headers=request.headers,
+                    params=request.api_params, data=request.data))
             if response.has_error():
                 raise RequestException(
-                        request.error_text, request.error_description)
+                        response.error_text, response.error_description)
             return response
         except (
                 requests.exceptions.ConnectionError,
@@ -188,8 +192,9 @@ class Api(ABC):
     def __request_delete(self, url, headers=None):
         return self.__make_request(Verbs.DELETE, url, headers)
 
-    def _request_get(self):
-        return self.__make_request(Verbs.GET)
+    def _request_get(self, request):
+        request.type = Verbs.GET
+        return self.__make_request(request)
 
     def __request_post(self, url, headers=None, data=None):
         return self.__make_request(Verbs.POST, url, data=data, headers=headers)
@@ -214,16 +219,17 @@ class Api(ABC):
         url = self.__get_api_url(ApiMethod.VERSION, different_url)
         return self.__request_get(url)
 
-    def api_token(self, ):
-        url = self._build_url(ApiMethod.TOKEN)
-        data = {
+    def api_token(self):
+        request = Api.Request()
+        request.url = self._build_url(ApiMethod.TOKEN)
+        request.api_params = {
             'grant_type': "password",
             'client_id': self.config.get(Sections.OAUTH2, Options.CLIENT),
             'client_secret': self.config.get(Sections.OAUTH2, Options.SECRET),
             'username': self.config.get(Sections.API, Options.USERNAME),
             'password': self.config.get(Sections.API, Options.PASSWORD)
         }
-        return self._request_get(url, params=data)
+        return self._request_get(request)
 
     def api_add_entry(self, targeturl, title=None, star=False, read=False):
         url = self.__get_api_url(ApiMethod.ADD_ENTRY)
@@ -271,7 +277,7 @@ class Api(ABC):
         return self.__request_patch(url, header, data)
 
     @abstractmethod
-    def _make_request(self):
+    def _make_request(self, request):
         pass
 
     @abstractmethod
@@ -285,11 +291,12 @@ class Api(ABC):
         return None
 
     def request(self):
-        self.url = self._get_api_url()
-        self.headers = self.__get_authorization_header()
-        self.params = self._get_params()
-        self.data = self._get_data()
-        return self._make_request()
+        request = Api.Request()
+        request.url = self._get_api_url()
+        request.headers = self.__get_authorization_header()
+        request.api_params = self._get_params()
+        request.data = self._get_data()
+        return self._make_request(request)
 
     def get_token(self, force_creation=False):
         if self.config.is_token_expired() or force_creation:
