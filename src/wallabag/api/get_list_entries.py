@@ -39,27 +39,23 @@ class GetListEntries(Api):
     def _get_params(self):
         ApiParams = self.ApiParams
         ApiValues = self.ApiValues
+        count = self.__get_count(self.params[Params.COUNT])
         api_params = {
-            ApiParams.PER_PAGE: self.__get_count(self.params[Params.COUNT])
+            ApiParams.PER_PAGE.value: count
         }
 
         if Params.OLDEST in self.params and self.params[Params.OLDEST]:
-            api_params[ApiParams.OLDEST] = ApiValues.OLDEST.value.ASC
+            api_params[ApiParams.OLDEST.value] = ApiValues.OLDEST.value.ASC
 
         if Params.FILTER_READ in self.params:
-            self.__put_bool_param(
+            self._put_bool_param(
                     api_params, Params.FILTER_READ, ApiParams.ARCHIVE)
 
         if Params.FILTER_STARRED in self.params:
-            self.__put_bool_param(
+            self._put_bool_param(
                     api_params, Params.FILTER_STARRED, ApiParams.STARRED)
 
         return api_params
 
     def __get_count(self, count):
         return 0 if not count or count < 0 else count
-
-    def __put_bool_param(self, api_params, param, api_param):
-        if self.params[param] is not None:
-            if isinstance(self.params[param], bool):
-                api_params[api_param] = 1 if self.params[param] else 0

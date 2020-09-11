@@ -37,8 +37,8 @@ class TestGetEntriesList():
         })
 
         params = api._get_params()
-        assert GetListEntries.ApiParams.PER_PAGE in params
-        assert params.get(GetListEntries.ApiParams.PER_PAGE) == count[1]
+        assert GetListEntries.ApiParams.PER_PAGE.value in params
+        assert params.get(GetListEntries.ApiParams.PER_PAGE.value) == count[1]
 
     @pytest.mark.parametrize('values', [
         ((
@@ -82,10 +82,10 @@ class TestGetEntriesList():
 
         params = api._get_params()
         if values[2] is not None:
-            assert values[0][1] in params
-            assert params.get(values[0][1]) == values[2]
+            assert values[0][1].value in params
+            assert params.get(values[0][1].value) == values[2]
         else:
-            assert values[0][1] not in params
+            assert values[0][1].value not in params
 
     @pytest.mark.parametrize('oldest', [
         (True, GetListEntries.ApiValues.OLDEST.value.ASC),
@@ -99,7 +99,7 @@ class TestGetEntriesList():
 
         params = api._get_params()
         if oldest[1]:
-            assert GetListEntries.ApiParams.OLDEST in params
-            assert oldest[1] == params.get(GetListEntries.ApiParams.OLDEST)
+            assert GetListEntries.ApiParams.OLDEST.value in params
+            assert oldest[1] == params.get(GetListEntries.ApiParams.OLDEST.value)
         else:
-            assert GetListEntries.ApiParams.OLDEST not in params
+            assert GetListEntries.ApiParams.OLDEST.value not in params
