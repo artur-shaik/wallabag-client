@@ -5,7 +5,7 @@ import sys
 from sys import exit
 
 from wallabag.api.api import ApiException
-from wallabag.api.get_list_entries import GetListEntries
+from wallabag.api.get_list_entries import GetListEntries, Params
 
 from . import entry
 
@@ -26,10 +26,10 @@ def list_entries(
 
     try:
         api = GetListEntries(config, {
-            GetListEntries.Params.COUNT: quantity,
-            GetListEntries.Params.FILTER_READ: filter_read,
-            GetListEntries.Params.FILTER_STARRED: filter_starred,
-            GetListEntries.Params.OLDEST: oldest
+            Params.COUNT: quantity,
+            Params.FILTER_READ: filter_read,
+            Params.FILTER_STARRED: filter_starred,
+            Params.OLDEST: oldest
         })
         request = api.request()
         response = json.loads(request.response)
@@ -45,9 +45,9 @@ def list_entries(
 def count_entries(config, filter_read=False, filter_starred=None):
     try:
         api = GetListEntries(config, {
-            GetListEntries.Params.COUNT: sys.maxsize,
-            GetListEntries.Params.FILTER_READ: filter_read,
-            GetListEntries.Params.FILTER_STARRED: filter_starred
+            Params.COUNT: sys.maxsize,
+            Params.FILTER_READ: filter_read,
+            Params.FILTER_STARRED: filter_starred
         })
         response = json.loads(api.request().response)
     except ApiException as ex:

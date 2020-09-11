@@ -3,7 +3,7 @@
 import pytest
 
 from wallabag.api.api import ApiMethod
-from wallabag.api.get_list_entries import GetListEntries
+from wallabag.api.get_list_entries import GetListEntries, Params
 from wallabag.config import Configs
 
 
@@ -23,7 +23,7 @@ class TestGetEntriesList():
 
     def test_api_url(self):
         api = GetListEntries(self.config, {
-            GetListEntries.Params.COUNT: 10
+            Params.COUNT: 10
         })
 
         assert "url" + ApiMethod.LIST_ENTRIES.value == api._get_api_url()
@@ -33,7 +33,7 @@ class TestGetEntriesList():
         ])
     def test_params_count(self, count):
         api = GetListEntries(self.config, {
-            GetListEntries.Params.COUNT: count[0]
+            Params.COUNT: count[0]
         })
 
         params = api._get_params()
@@ -42,41 +42,41 @@ class TestGetEntriesList():
 
     @pytest.mark.parametrize('values', [
         ((
-            GetListEntries.Params.FILTER_READ,
+            Params.FILTER_READ,
             GetListEntries.ApiParams.ARCHIVE
             ), True, 1),
         ((
-            GetListEntries.Params.FILTER_READ,
+            Params.FILTER_READ,
             GetListEntries.ApiParams.ARCHIVE
             ), None, None),
         ((
-            GetListEntries.Params.FILTER_READ,
+            Params.FILTER_READ,
             GetListEntries.ApiParams.ARCHIVE
             ), False, 0),
         ((
-            GetListEntries.Params.FILTER_READ,
+            Params.FILTER_READ,
             GetListEntries.ApiParams.ARCHIVE
             ), 'foo', None),
         ((
-            GetListEntries.Params.FILTER_STARRED,
+            Params.FILTER_STARRED,
             GetListEntries.ApiParams.STARRED
             ), True, 1),
         ((
-            GetListEntries.Params.FILTER_STARRED,
+            Params.FILTER_STARRED,
             GetListEntries.ApiParams.STARRED
             ), None, None),
         ((
-            GetListEntries.Params.FILTER_STARRED,
+            Params.FILTER_STARRED,
             GetListEntries.ApiParams.STARRED
             ), False, 0),
         ((
-            GetListEntries.Params.FILTER_STARRED,
+            Params.FILTER_STARRED,
             GetListEntries.ApiParams.STARRED
             ), 'foo', None)
         ])
     def test_bool_params(self, values):
         api = GetListEntries(self.config, {
-            GetListEntries.Params.COUNT: 1,
+            Params.COUNT: 1,
             values[0][0]: values[1]
         })
 
@@ -93,8 +93,8 @@ class TestGetEntriesList():
         ])
     def test_param_oldest(self, oldest):
         api = GetListEntries(self.config, {
-            GetListEntries.Params.COUNT: 1,
-            GetListEntries.Params.OLDEST: oldest[0]
+            Params.COUNT: 1,
+            Params.OLDEST: oldest[0]
         })
 
         params = api._get_params()

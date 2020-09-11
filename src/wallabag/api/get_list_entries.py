@@ -5,15 +5,16 @@ from enum import Enum
 from wallabag.api.api import Api, ApiMethod
 
 
+class Params(Enum):
+    COUNT = "count"
+    FILTER_READ = "filter_read"
+    FILTER_STARRED = "filter_starred"
+    OLDEST = "oldest"
+
+
 class GetListEntries(Api):
 
     API_METHOD = ApiMethod.LIST_ENTRIES
-
-    class Params(Enum):
-        COUNT = "count"
-        FILTER_READ = "filter_read"
-        FILTER_STARRED = "filter_starred"
-        OLDEST = "oldest"
 
     class ApiParams(Enum):
         PER_PAGE = "perPage"
@@ -36,7 +37,6 @@ class GetListEntries(Api):
         return self._build_url(GetListEntries.API_METHOD)
 
     def _get_params(self):
-        Params = self.Params
         ApiParams = self.ApiParams
         ApiValues = self.ApiValues
         api_params = {
