@@ -4,47 +4,45 @@ Module for updating existing entries
 import json
 from sys import exit
 
-from . import api
+from wallabag.api.api import ApiException
+from wallabag.api.get_entry import GetEntry
+from wallabag.api.update_entry import UpdateEntry, Params
 from . import entry
-from wallabag.config import Configs as conf
 
 
-def update(entry_id, toggle_read=False, toggle_star=False, new_title=None, quiet=False):
-    """
-    Main method for updating existing wallabag entries.
-    """
-    conf.load()
-
+def update(config, entry_id, toggle_read=False,
+           toggle_star=False, new_title=None, quiet=False):
     read_value = None
     star_value = None
 
     try:
-        request = api.api_get_entry(entry_id)
+        api = GetEntry(config, entry_id)
+        request = api.request()
         __handle_request_error(request)
         entr = entry.Entry(json.loads(request.response))
-        if toggle_read and entr.read:
-            read_value = 0
-        elif toggle_read and not entr.read:
-            read_value = 1
-        if toggle_star and entr.starred:
-            star_value = 0
-        elif toggle_star and not entr.starred:
-            star_value = 1
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+        if toggle_read:
+            read_value = not entr.read
+        if toggle_star:
+            star_value = not entr.starred
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
 
     try:
-        request = api.api_update_entry(
-            entry_id, new_title, star_value, read_value)
+        api = UpdateEntry(config, entry_id, {
+            Params.TITLE: new_title,
+            Params.STAR: star_value,
+            Params.READ: read_value
+        })
+        request = api.request()
         __handle_request_error(request)
         if not quiet:
             print("Entry successfully updated.")
             print()
         exit(0)
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
 

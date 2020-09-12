@@ -185,7 +185,8 @@ def delete(entry_id, force, quiet):
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
-def update(entry_id, title, toggle_read, toggle_starred, quiet):
+@click.pass_context
+def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
     """
         Toggle the read or starred status or change the title
         of an existing entry.
@@ -195,7 +196,8 @@ def update(entry_id, title, toggle_read, toggle_starred, quiet):
     if not title and not toggle_read and not toggle_starred:
         click.echo("Error: No parameter given.")
         exit(-1)
-    wallabag_update.update(entry_id, toggle_read, toggle_starred, title, quiet)
+    wallabag_update.update(
+            ctx.obj, entry_id, toggle_read, toggle_starred, title, quiet)
 
 
 @cli.command()

@@ -202,9 +202,9 @@ class Api(ABC):
     def __request_post(self, url, headers=None, data=None):
         return self.__make_request(Verbs.POST, url, data=data, headers=headers)
 
-    def __request_patch(self, url, headers=None, data=None):
-        return self.__make_request(
-                Verbs.PATCH, url, data=data, headers=headers)
+    def _request_patch(self, request):
+        request.type = Verbs.PATCH
+        return self.__make_request(request)
 
     def is_valid_url(self, url):
         return not self.__request_get(url).has_error()
@@ -262,17 +262,24 @@ class Api(ABC):
         }
         return self.__request_get(url, headers=header, params=data)
 
-    def api_update_entry(self, entry_id, new_title=None, star=None, read=None):
-        url = self.__get_api_url(ApiMethod.UPDATE_ENTRY).format(entry_id)
-        header = self.__get_authorization_header()
-        data = dict()
-        if new_title:
-            data['title'] = new_title
-        if star is not None:
-            data["starred"] = 1 if star else 0
-        if read is not None:
-            data['archive'] = 1 if read else 0
-        return self.__request_patch(url, header, data)
+    def _validate_entry_id(self, entry_id):
+        if not entry_id:
+            raise ValueException("ENTRY_ID is not a number")
+
+        try:
+            entry_id = int(self.entry_id)
+        except ValueError:
+            raise ValueException("ENTRY_ID is not a number")
+
+        if entry_id < 0:
+            raise ValueException("ENTRY_ID is less than zero")
+
+        return entry_id
+
+    def _put_bool_param(self, api_params, param, api_param):
+        if self.params[param] is not None:
+            if isinstance(self.params[param], bool):
+                api_params[api_param.value] = 1 if self.params[param] else 0
 
     @abstractmethod
     def _make_request(self, request):
