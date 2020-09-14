@@ -3,7 +3,6 @@ Wallabag API accesses.
 """
 import json
 import re
-import time
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 
@@ -69,7 +68,7 @@ class ApiMethod(Enum):
     DELETE_ENTRY = "/api/entries/{0}"
     GET_ENTRY = "/api/entries/{0}"
     UPDATE_ENTRY = "/api/entries/{0}"
-    ENTRY_EXISTS = "/api/entries/exists"
+    ENTRY_EXISTS = "/api/entrieas/qexists"
     LIST_ENTRIES = "/api/entries"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
@@ -95,9 +94,9 @@ class Response:
 
     response = ""
 
-    def __init__(self, response):
-        self.http_code = response.status_code
-        self.response = response.text
+    def __init__(self, status_code, text):
+        self.http_code = status_code
+        self.response = text
 
         # DNS not found
         if self.http_code == 0:
@@ -154,8 +153,28 @@ class Api(ABC):
         headers = None
         data = None
 
+    skip_auth = False
+
     def __init__(self, config):
         self.config = config
+
+    def request(self):
+        request = Api.Request()
+        request.url = self._get_api_url()
+        if not self.skip_auth:
+            request.headers = self.__get_authorization_header()
+        request.api_params = self._get_params()
+        request.data = self._get_data()
+        return self._make_request(request)
+
+    def is_minimum_version(version_response):
+        versionstring = version_response.response
+
+        if not Api.VERSION_RE.match(versionstring):
+            return False
+
+        ver = versionstring.strip('"')
+        return version.parse(MINIMUM_API_VERSION_HR) <= version.parse(ver)
 
     def _build_url(self, api_method, url=None):
         try:
@@ -165,36 +184,6 @@ class Api(ABC):
                 return serverurl + api_method.value
         except TypeError:
             raise UnsupportedMethodException(api_method)
-
-    def __get_authorization_header(self):
-        success, token_or_error = self.get_token()
-        if not success:
-            return OAuthException(token_or_error)
-        else:
-            return {'Authorization': f"Bearer {token_or_error}"}
-
-    def __make_request(self, request):
-        try:
-            request_methods = {
-                Verbs.GET: requests.get,
-                Verbs.DELETE: requests.delete,
-                Verbs.POST: requests.post,
-                Verbs.PATCH: requests.patch,
-                Verbs.HEAD: requests.head
-            }
-
-            response = Response(request_methods[request.type](
-                    request.url, headers=request.headers,
-                    params=request.api_params, data=request.data))
-        except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.MissingSchema) as error:
-            raise RequestException(
-                    'Connection error', error)
-        if response.has_error():
-            raise RequestException(
-                    response.error_text, response.error_description)
-        return response
 
     def _request_delete(self, request):
         request.type = Verbs.DELETE
@@ -237,31 +226,6 @@ class Api(ABC):
             raise ValueException("Invalid url")
         return url
 
-    def is_minimum_version(self, version_response):
-        versionstring = version_response.response
-
-        if not Api.VERSION_RE.match(versionstring):
-            return False
-
-        ver = versionstring.strip('"')
-        return version.parse(MINIMUM_API_VERSION_HR) >= version.parse(ver)
-
-    def api_version(self, different_url=None):
-        url = self.__get_api_url(ApiMethod.VERSION, different_url)
-        return self.__request_get(url)
-
-    def api_token(self):
-        request = Api.Request()
-        request.url = self._build_url(ApiMethod.TOKEN)
-        request.api_params = {
-            'grant_type': "password",
-            'client_id': self.config.get(Sections.OAUTH2, Options.CLIENT),
-            'client_secret': self.config.get(Sections.OAUTH2, Options.SECRET),
-            'username': self.config.get(Sections.API, Options.USERNAME),
-            'password': self.config.get(Sections.API, Options.PASSWORD)
-        }
-        return self._request_get(request)
-
     def _validate_entry_id(self, entry_id):
         if not entry_id:
             raise ValueException("ENTRY_ID is not a number")
@@ -295,39 +259,34 @@ class Api(ABC):
     def _get_data(self):
         return None
 
-    def request(self):
-        request = Api.Request()
-        request.url = self._get_api_url()
-        request.headers = self.__get_authorization_header()
-        request.api_params = self._get_params()
-        request.data = self._get_data()
-        return self._make_request(request)
-
-    def get_token(self, force_creation=False):
-        if self.config.is_token_expired() or force_creation:
-            response = self.api_token()
-            if not response.has_error():
-                content = json.loads(response.response)
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN,
-                        content['access_token'])
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.EXPIRES,
-                        str(time.time() + content['expires_in']))
-                self.config.save()
-                return True, self.config.get(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN)
-            else:
-                if not response.error_description:
-                    return False, response.error_text
-                else:
-                    error_text = response.error_text
-                    error_description = response.error_description
-                    return False, f"{error_text} - {error_description}"
+    def __get_authorization_header(self):
+        from wallabag.configurator import TokenConfigurator
+        success, token_or_error = TokenConfigurator(self.config).get_token()
+        if not success:
+            return OAuthException(token_or_error)
         else:
-            return True, self.config.get(
-                    Sections.TOKEN,
-                    Options.ACCESS_TOKEN)
+            return {'Authorization': f"Bearer {token_or_error}"}
+
+    def __make_request(self, request):
+        try:
+            request_methods = {
+                Verbs.GET: requests.get,
+                Verbs.DELETE: requests.delete,
+                Verbs.POST: requests.post,
+                Verbs.PATCH: requests.patch,
+                Verbs.HEAD: requests.head
+            }
+
+            result = request_methods[request.type](
+                    request.url, headers=request.headers,
+                    params=request.api_params, data=request.data)
+            response = Response(result.status_code, result.text)
+        except (
+                requests.exceptions.ConnectionError,
+                requests.exceptions.MissingSchema) as error:
+            raise RequestException(
+                    'Connection error', error)
+        if response.has_error():
+            raise RequestException(
+                    response.error_text, response.error_description)
+        return response

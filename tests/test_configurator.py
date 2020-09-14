@@ -6,13 +6,15 @@ import tempfile
 import pytest
 
 from wallabag.api.api import Api, Response
+from wallabag.api.get_api_version import ApiVersion
+from wallabag.api.api_token import ApiToken
 from wallabag.config import Configs, Options, Sections
 from wallabag.configurator import (
         ClientOption, PasswordOption, SecretOption,
         ServerurlOption, UsernameOption, Validator)
 
 
-def is_minimum_version(self, response):
+def is_minimum_version(response):
     return True
 
 
@@ -58,9 +60,10 @@ class TestConfigurator():
             return False
 
         monkeypatch.setattr(Response, 'has_error', testresponse)
+        monkeypatch.setattr(ApiVersion, 'request', api_success)
         monkeypatch.setattr(Api, 'is_minimum_version', is_minimum_version)
 
-        so = ServerurlOption(Api(self.configs))
+        so = ServerurlOption(self.configs)
         so.check_and_apply(values[0])
 
         assert values[1] == so.get_value()
@@ -76,8 +79,8 @@ class TestConfigurator():
         assert (values[1][0], values[1][1]) == values[0].get_option_name()
 
     def test_validator_check_success(self, monkeypatch):
-        monkeypatch.setattr(Api, 'api_version', api_success)
-        monkeypatch.setattr(Api, 'api_token', api_success)
+        monkeypatch.setattr(ApiVersion, 'request', api_success)
+        monkeypatch.setattr(ApiToken, 'request', api_success)
         monkeypatch.setattr(Api, 'is_minimum_version', is_minimum_version)
 
         (result, msg) = Validator(self.configs).check()
@@ -86,8 +89,8 @@ class TestConfigurator():
         assert msg == 'The config is suitable.'
 
     def test_validator_check_error(self, monkeypatch):
-        monkeypatch.setattr(Api, 'api_version', api_failure)
-        monkeypatch.setattr(Api, 'api_token', api_failure)
+        monkeypatch.setattr(ApiVersion, 'request', api_failure)
+        monkeypatch.setattr(ApiToken, 'request', api_failure)
         monkeypatch.setattr(Api, 'is_minimum_version', is_minimum_version)
 
         (result, msg) = Validator(self.configs).check()
@@ -96,14 +99,14 @@ class TestConfigurator():
         assert msg == 'The server or the API is not reachable.'
 
     def test_validator_oauth_success(self, monkeypatch):
-        monkeypatch.setattr(Api, 'api_token', api_success)
+        monkeypatch.setattr(ApiToken, 'request', api_success)
 
         (result, msg, opts) = Validator(None).check_oauth()
         assert result
         assert msg == 'The configuration is ok.'
 
     def test_validator_oauth_failure(self, monkeypatch):
-        monkeypatch.setattr(Api, 'api_token', api_failure)
+        monkeypatch.setattr(ApiToken, 'request', api_failure)
 
         (result, msg, opts) = Validator(None).check_oauth()
         assert not result
@@ -113,7 +116,7 @@ class TestConfigurator():
         def api_failure_400_grant(self):
             return Response(400, '{"error": "invalid_grant"}')
 
-        monkeypatch.setattr(Api, 'api_token', api_failure_400_grant)
+        monkeypatch.setattr(ApiToken, 'request', api_failure_400_grant)
 
         (result, msg, options) = Validator(None).check_oauth()
         assert not result
@@ -126,7 +129,7 @@ class TestConfigurator():
         def api_failure_400_client(self):
             return Response(400, '{"error": "invalid_client"}')
 
-        monkeypatch.setattr(Api, 'api_token', api_failure_400_client)
+        monkeypatch.setattr(ApiToken, 'request', api_failure_400_client)
 
         (result, msg, options) = Validator(None).check_oauth()
         assert not result

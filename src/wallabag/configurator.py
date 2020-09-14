@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import json
 import re
+import time
 from abc import ABC, abstractmethod
 
 import click
 
-from wallabag.api.api import Api, Error
+from wallabag.api.api import Api, Error, ApiException, MINIMUM_API_VERSION_HR
+from wallabag.api.get_api_version import ApiVersion
+from wallabag.api.api_token import ApiToken
 from wallabag.config import Options, Sections
 
 
@@ -28,7 +32,6 @@ class Validator():
 
     def __init__(self, config):
         self.config = config
-        self.api = Api(config)
         self.response = {
             'invalid_grant': (
                 False, None, [UsernameOption(), PasswordOption()]),
@@ -37,9 +40,9 @@ class Validator():
         }
 
     def check_oauth(self):
-        response = self.api.api_token()
+        response = ApiToken(self.config).request()
         if response.has_error():
-            if response.error == Error.http_bad_request:
+            if response.error == Error.HTTP_BAD_REQUEST:
                 click.echo(response.error_description)
                 return self.response[response.error_text]
             return (False, response.error_description, None)
@@ -49,15 +52,15 @@ class Validator():
         if not self.config.is_valid():
             return (False, "The config is missing or incomplete.")
 
-        response = self.api.api_version()
+        response = ApiVersion(self.config).request()
         if response.has_error():
             return (False, "The server or the API is not reachable.")
 
-        if not self.api.is_minimum_version(response):
+        if not Api.is_minimum_version(response):
             return (False,
                     "The version of the wallabag instance is too old.")
 
-        if self.api.api_token().has_error():
+        if ApiToken(self.config).request().has_error():
             return (False, response.error_description)
 
         return (True, "The config is suitable.")
@@ -69,7 +72,7 @@ class ConfigOption(ABC):
     default = ''
 
     def get_all(config):
-        return [ServerurlOption(Api(config)), UsernameOption(),
+        return [ServerurlOption(config), UsernameOption(),
                 PasswordOption(), ClientOption(), SecretOption()]
 
     def __init__(self, default=None):
@@ -112,7 +115,7 @@ class ConfigOption(ABC):
         except ValueError as e:
             click.echo(e)
             return False
-        config.set_config(sec, opt, self.get_value())
+        config.set(sec, opt, self.get_value())
         return True
 
 
@@ -123,8 +126,8 @@ class ServerurlOption(ConfigOption):
     prompt = 'Enter the url of your Wallabag instance'
     default = 'https://www.wallabag.com/'
 
-    def __init__(self, api):
-        self.api = api
+    def __init__(self, config):
+        self.config = config
 
     def __check_trailing_space(self, value):
         return value[:-1] if value[-1] == '/' else value
@@ -134,15 +137,15 @@ class ServerurlOption(ConfigOption):
                 else value
 
     def __check_api_verion(self, value):
-        response = self.api.api_version(value)
+        response = ApiVersion(self.config, value).request()
         if response.has_error():
             raise ValueError(response.error_text)
 
-        if not self.api.is_minimum_version(response):
+        if not Api.is_minimum_version(response):
             raise ValueError(
-                    "Your wallabag instance is too old. \
+                    f"Your wallabag instance is too old. \
                             You need at least version \
-                            {api.MINIMUM_API_VERSION_HR}.")
+                            {MINIMUM_API_VERSION_HR}.")
 
     def check_and_apply(self, value):
         value = self._check_existence_or_default(value.strip())
@@ -185,3 +188,33 @@ class SecretOption(ConfigOption):
 
     def get_option_name(self):
         return (Sections.OAUTH2, Options.SECRET)
+
+
+class TokenConfigurator():
+
+    def __init__(self, config):
+        self.config = config
+
+    def get_token(self, force_creation=False):
+        if self.config.is_token_expired() or force_creation:
+            try:
+                response = ApiToken(self.config).request()
+                content = json.loads(response.response)
+                self.config.set(
+                        Sections.TOKEN,
+                        Options.ACCESS_TOKEN,
+                        content['access_token'])
+                self.config.set(
+                        Sections.TOKEN,
+                        Options.EXPIRES,
+                        str(time.time() + content['expires_in']))
+                self.config.save()
+                return True, self.config.get(
+                        Sections.TOKEN,
+                        Options.ACCESS_TOKEN)
+            except ApiException as e:
+                return False, f"Error: {e.error_text} - {e.error_description}"
+        else:
+            return True, self.config.get(
+                    Sections.TOKEN,
+                    Options.ACCESS_TOKEN)
