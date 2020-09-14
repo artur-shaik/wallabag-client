@@ -154,9 +154,10 @@ def star(entry_id, quiet):
               help="Hide the output if no error occurs.")
 @click.argument('url', required=True)
 @need_config
-def add(url, title, read, starred, quiet):
+@click.pass_context
+def add(ctx, url, title, read, starred, quiet):
     """Add a new entry to wallabag."""
-    wallabag_add.add(url, title, starred, read, quiet)
+    wallabag_add.add(ctx.obj, url, title, starred, read, quiet)
 
 
 @cli.command()

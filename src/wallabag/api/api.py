@@ -81,6 +81,7 @@ class Verbs(Enum):
     PUT = auto()
     DELETE = auto()
     PATCH = auto()
+    HEAD = auto()
 
 
 class Response:
@@ -144,6 +145,7 @@ class Response:
 class Api(ABC):
 
     VERSION_RE = re.compile('"\\d+\\.\\d+\\.\\d+"')
+    URL_RE = re.compile("(?i)https?:\\/\\/.+")
 
     class Request:
         type = None
@@ -177,37 +179,62 @@ class Api(ABC):
                 Verbs.GET: requests.get,
                 Verbs.DELETE: requests.delete,
                 Verbs.POST: requests.post,
-                Verbs.PATCH: requests.patch
+                Verbs.PATCH: requests.patch,
+                Verbs.HEAD: requests.head
             }
 
             response = Response(request_methods[request.type](
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data))
-            if response.has_error():
-                raise RequestException(
-                        response.error_text, response.error_description)
-            return response
         except (
                 requests.exceptions.ConnectionError,
-                requests.exceptions.MissingSchema):
-            return Response(0, None)
+                requests.exceptions.MissingSchema) as error:
+            raise RequestException(
+                    'Connection error', error)
+        if response.has_error():
+            raise RequestException(
+                    response.error_text, response.error_description)
+        return response
 
     def __request_delete(self, url, headers=None):
         return self.__make_request(Verbs.DELETE, url, headers)
+
+    def _request_head(self, request):
+        request.type = Verbs.HEAD
+        return self.__make_request(request)
 
     def _request_get(self, request):
         request.type = Verbs.GET
         return self.__make_request(request)
 
-    def __request_post(self, url, headers=None, data=None):
-        return self.__make_request(Verbs.POST, url, data=data, headers=headers)
+    def _request_post(self, request):
+        request.type = Verbs.POST
+        return self.__make_request(request)
 
     def _request_patch(self, request):
         request.type = Verbs.PATCH
         return self.__make_request(request)
 
-    def is_valid_url(self, url):
-        return not self.__request_get(url).has_error()
+    def _is_valid_url(self, url):
+        request = Api.Request()
+        request.url = url
+        return not self._request_head(request).has_error()
+
+    def _validate_url(self, url):
+        if not url:
+            raise ValueException("Invalid url")
+        if not Api.URL_RE.match(url):
+            for protocol in "https://", "http://":
+                if self._is_valid_url(f"{protocol}{url}"):
+                    url = f"{protocol}{url}"
+                    valid_url = True
+                    break
+        else:
+            valid_url = self._is_valid_url(url)
+
+        if not valid_url:
+            raise ValueException("Invalid url")
+        return url
 
     def is_minimum_version(self, version_response):
         versionstring = version_response.response
@@ -234,33 +261,11 @@ class Api(ABC):
         }
         return self._request_get(request)
 
-    def api_add_entry(self, targeturl, title=None, star=False, read=False):
-        url = self.__get_api_url(ApiMethod.ADD_ENTRY)
-        header = self.__get_authorization_header()
-        data = {
-            'url': targeturl
-        }
-        if title:
-            data['title'] = title
-        if star:
-            data['starred'] = 1
-        if read:
-            data['archive'] = 1
-        return self.__request_post(url, header, data)
-
     def api_delete_entry(self, entry_id):
         url = self.__get_api_url(ApiMethod.DELETE_ENTRY).format(entry_id)
         header = self.__get_authorization_header()
 
         return self.__request_delete(url, header)
-
-    def api_entry_exists(self, url):
-        url = self.__get_api_url(ApiMethod.ENTRY_EXISTS)
-        header = self.__get_authorization_header()
-        data = {
-            'url': url
-        }
-        return self.__request_get(url, headers=header, params=data)
 
     def _validate_entry_id(self, entry_id):
         if not entry_id:

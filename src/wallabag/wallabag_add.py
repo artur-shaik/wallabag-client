@@ -2,64 +2,31 @@
 Module for adding new entries
 """
 import json
-import re
 from sys import exit
 
-from . import api
-from wallabag.config import Configs as conf
+from wallabag.api.api import ApiException
+from wallabag.api.add_entry import AddEntry, Params
+from wallabag.api.entry_exists import EntryExists
 
 
-def add(target_url, title=None, star=False, read=False, quiet=False):
-    """
-    Main function for adding new entries to the wallabag account.
-    """
-    conf.load()
-
-    valid_url = False
-    if not re.compile("(?i)https?:\\/\\/.+").match(target_url):
-        for protocol in "https://", "http://":
-            if api.is_valid_url("{0}{1}".format(protocol, target_url)):
-                target_url = "{0}{1}".format(protocol, target_url)
-                valid_url = True
-                break
-    else:
-        valid_url = api.is_valid_url(target_url)
-
-    if not valid_url:
-        print("Error: Invalid url.")
-        print()
-        exit(-1)
-
+def add(config, target_url, title=None, star=False, read=False, quiet=False):
     try:
-        request = api.api_entry_exists(target_url)
-        if request.has_error():
-            print("Error: {0} - {1}".format(request.error_text,
-                                            request.error_description))
-            print()
-            exit(-1)
-        response = json.loads(request.response)
+        api = EntryExists(config, target_url)
+        response = json.loads(api.request().response)
         if response['exists']:
             if not quiet:
                 print("The url was already saved.")
             exit(0)
 
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
-        print()
-        exit(-1)
-
-    try:
-        request = api.api_add_entry(target_url, title, star, read)
-        if request.has_error():
-            print("Error: {0} - {1}".format(request.error_text,
-                                            request.error_description))
-            print()
-            exit(-1)
-        else:
-            if not quiet:
-                print("Entry successfully added.")
-            exit(0)
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+        api = AddEntry(config, target_url, {
+            Params.TITLE: title,
+            Params.READ: read,
+            Params.STAR: star
+        })
+        api.request()
+        if not quiet:
+            print("Entry successfully added.")
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
