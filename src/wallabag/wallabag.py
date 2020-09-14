@@ -167,13 +167,14 @@ def add(ctx, url, title, read, starred, quiet):
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
-def delete(entry_id, force, quiet):
+@click.pass_context
+def delete(ctx, entry_id, force, quiet):
     """
     Delete an entry from wallabag.
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_delete.delete(entry_id, force, quiet)
+    wallabag_delete.delete(ctx.obj, entry_id, force, quiet)
 
 
 @cli.command()

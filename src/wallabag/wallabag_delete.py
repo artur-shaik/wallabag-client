@@ -1,43 +1,38 @@
-"""
-Module for deleting existing entries
-"""
 import json
 from sys import exit
 
-from . import api
+from wallabag.api.api import ApiException
+from wallabag.api.get_entry import GetEntry
+from wallabag.api.delete_entry import DeleteEntry
 from . import entry
-from wallabag.config import Configs as conf
 
 
-def delete(entry_id, force=False, quiet=False):
-    """
-    Main function for deleting wallabag entries.
-    """
-    conf.load()
-
+def delete(config, entry_id, force=False, quiet=False):
     if not force:
         try:
-            request = api.api_get_entry(entry_id)
+            api = GetEntry(config, entry_id)
+            request = api.request()
             __handle_request_error(request)
             entr = entry.Entry(json.loads(request.response))
             print("Do you really wish to delete the following entry?")
             i = input(entr.title + " [y/N] ")
             if str.lower(i) not in ["y", "yes"]:
                 exit(0)
-        except api.OAuthException as ex:
-            print("Error: {0}".format(ex.text))
+        except ApiException as ex:
+            print(f"Error: {ex.error_text} - {ex.error_description}")
             print()
             exit(-1)
 
     try:
-        request = api.api_delete_entry(entry_id)
+        api = DeleteEntry(config, entry_id)
+        request = api.request()
         __handle_request_error(request)
         if not quiet:
             print("Entry successfully deleted.")
             print()
         exit(0)
-    except api.OAuthException as ex:
-        print("Error: {0}".format(ex.text))
+    except ApiException as ex:
+        print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
         exit(-1)
 

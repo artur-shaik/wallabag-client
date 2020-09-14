@@ -196,8 +196,9 @@ class Api(ABC):
                     response.error_text, response.error_description)
         return response
 
-    def __request_delete(self, url, headers=None):
-        return self.__make_request(Verbs.DELETE, url, headers)
+    def _request_delete(self, request):
+        request.type = Verbs.DELETE
+        return self.__make_request(request)
 
     def _request_head(self, request):
         request.type = Verbs.HEAD
@@ -260,12 +261,6 @@ class Api(ABC):
             'password': self.config.get(Sections.API, Options.PASSWORD)
         }
         return self._request_get(request)
-
-    def api_delete_entry(self, entry_id):
-        url = self.__get_api_url(ApiMethod.DELETE_ENTRY).format(entry_id)
-        header = self.__get_authorization_header()
-
-        return self.__request_delete(url, header)
 
     def _validate_entry_id(self, entry_id):
         if not entry_id:
