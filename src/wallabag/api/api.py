@@ -1,6 +1,3 @@
-"""
-Wallabag API accesses.
-"""
 import json
 import re
 from abc import ABC, abstractmethod
