@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 import re
 import time
 from abc import ABC, abstractmethod
@@ -199,7 +198,7 @@ class TokenConfigurator():
         if self.config.is_token_expired() or force_creation:
             try:
                 response = ApiToken(self.config).request()
-                content = json.loads(response.response)
+                content = response.response
                 self.config.set(
                         Sections.TOKEN,
                         Options.ACCESS_TOKEN,

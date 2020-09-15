@@ -1,7 +1,6 @@
 """
 Module for adding new entries
 """
-import json
 from sys import exit
 
 from wallabag.api.api import ApiException
@@ -12,7 +11,7 @@ from wallabag.api.entry_exists import EntryExists
 def add(config, target_url, title=None, star=False, read=False, quiet=False):
     try:
         api = EntryExists(config, target_url)
-        response = json.loads(api.request().response)
+        response = api.request().response
         if response['exists']:
             if not quiet:
                 print("The url was already saved.")

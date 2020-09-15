@@ -1,7 +1,6 @@
 """
 Module for updating existing entries
 """
-import json
 from sys import exit
 
 from wallabag.api.api import ApiException
@@ -19,7 +18,7 @@ def update(config, entry_id, toggle_read=False,
         api = GetEntry(config, entry_id)
         request = api.request()
         __handle_request_error(request)
-        entr = entry.Entry(json.loads(request.response))
+        entr = entry.Entry(request.response)
         if toggle_read:
             read_value = not entr.read
         if toggle_star:

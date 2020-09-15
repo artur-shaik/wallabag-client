@@ -3,7 +3,6 @@ Show a wallabag entry
 """
 import io
 import formatter
-import json
 import os
 from sys import exit
 import sys
@@ -17,7 +16,7 @@ from . import entry
 def show(config, entry_id, colors=True, raw=False, html=False):
     try:
         api = GetEntry(config, entry_id)
-        entr = entry.Entry(json.loads(api.request().response))
+        entr = entry.Entry(api.request().response)
     except ApiException as ex:
         print(f"Error: {ex.error_text} - {ex.error_description}")
         print()

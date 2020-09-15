@@ -58,7 +58,7 @@ class ApiMethod(Enum):
     DELETE_ENTRY = "/api/entries/{0}"
     GET_ENTRY = "/api/entries/{0}"
     UPDATE_ENTRY = "/api/entries/{0}"
-    ENTRY_EXISTS = "/api/entrieas/qexists"
+    ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
@@ -78,9 +78,11 @@ class Response:
     error_text = ""
     error_description = ""
 
-    response = ""
+    response = None
 
     def __init__(self, status_code, text):
+        if text:
+            self.response = json.loads(text)
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
             400: (Error.HTTP_BAD_REQUEST, self.__error_from_server),
@@ -89,6 +91,7 @@ class Response:
                   ("403: Could not reach API due to rights issues.", None)),
             404: (Error.HTTP_NOT_FOUND, ("404: API was not found.", None)),
             200: (Error.OK, None),
+            418: (Error.OK, None),
         }
 
         if status_code in errors:
@@ -101,16 +104,15 @@ class Response:
             self.error_text = result[1][0]
             self.error_description = result[1][1]
         elif result[1]:
-            (self.error_text, self.error_description) = result[1](text)
+            (self.error_text, self.error_description) = result[1]()
 
     def has_error(self):
         return self.error != Error.OK
 
-    def __error_from_server(self, response):
-        errors = json.loads(response)
-        return (errors['error'] if 'error' in errors else None,
-                errors['error_description']
-                if 'error_description' in errors else None)
+    def __error_from_server(self):
+        return (self.response['error'] if 'error' in self.response else None,
+                self.response['error_description']
+                if 'error_description' in self.response else None)
 
 
 class Api(ABC):

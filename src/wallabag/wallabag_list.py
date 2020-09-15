@@ -1,4 +1,3 @@
-import json
 import os
 import platform
 import sys
@@ -32,7 +31,7 @@ def list_entries(
             Params.OLDEST: oldest
         })
         request = api.request()
-        response = json.loads(request.response)
+        response = request.response
     except ApiException as ex:
         print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
@@ -49,7 +48,7 @@ def count_entries(config, filter_read=False, filter_starred=None):
             Params.FILTER_READ: filter_read,
             Params.FILTER_STARRED: filter_starred
         })
-        response = json.loads(api.request().response)
+        response = api.request().response
     except ApiException as ex:
         print(f"Error: {ex.error_text} - {ex.error_description}")
         print()
