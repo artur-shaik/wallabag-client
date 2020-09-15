@@ -46,9 +46,6 @@ class UnsupportedMethodException(ApiException):
 
 
 class Error(Enum):
-    """
-    A list of possible http errors.
-    """
     UNDEFINED = -1
     OK = 0
     DNS_ERROR = 1
@@ -60,10 +57,6 @@ class Error(Enum):
 
 
 class ApiMethod(Enum):
-    """
-    The list of valid wallabag-api urls.
-    The server url has to be put in front of it.
-    """
     ADD_ENTRY = "/api/entries"
     DELETE_ENTRY = "/api/entries/{0}"
     GET_ENTRY = "/api/entries/{0}"
@@ -84,10 +77,6 @@ class Verbs(Enum):
 
 
 class Response:
-    """
-    A response given by an api-call.
-    """
-    http_code = 0
     error = Error.UNDEFINED
     error_text = ""
     error_description = ""
@@ -95,50 +84,36 @@ class Response:
     response = ""
 
     def __init__(self, status_code, text):
-        self.http_code = status_code
-        self.response = text
+        errors = {
+            0: (Error.DNS_ERROR, ("Name or service not known.", None)),
+            400: (Error.HTTP_BAD_REQUEST, self.__error_from_server),
+            401: (Error.HTTP_UNAUTHORIZED, self.__error_from_server),
+            403: (Error.HTTP_FORBIDDEN,
+                  ("403: Could not reach API due to rights issues.", None)),
+            404: (Error.HTTP_NOT_FOUND, ("404: API was not found.", None)),
+            200: (Error.OK, None),
+        }
 
-        # DNS not found
-        if self.http_code == 0:
-            self.error = Error.DNS_ERROR
-            self.error_text = "Name or service not known."
-        # 400 bad request
-        elif self.http_code == 400:
-            self.error = Error.HTTP_BAD_REQUEST
-            errors = json.loads(self.response)
-            if 'error' in errors:
-                self.error_text = errors['error']
-            if 'error_description' in errors:
-                self.error_description = errors['error_description']
-        # 401 unauthorized
-        elif self.http_code == 401:
-            self.error = Error.HTTP_UNAUTHORIZED
-            errors = json.loads(self.response)
-            if 'error' in errors:
-                self.error_text = errors['error']
-            if 'error_description' in errors:
-                self.error_description = errors['error_description']
-        # 403 forbidden
-        elif self.http_code == 403:
-            self.error = Error.HTTP_FORBIDDEN
-            self.error_text = "403: Could not reach API due to rights issues."
-        # 404 not found
-        elif self.http_code == 404:
-            self.error = Error.HTTP_NOT_FOUND
-            self.error_text = "404: API was not found."
-        # 200 okay
-        elif self.http_code == 200:
-            self.error = Error.OK
-        # unknown Error
+        if status_code in errors:
+            result = errors.get(status_code)
         else:
-            self.error = Error.UNKNOWN_ERROR
-            self.error_text = "An unknown error occured."
+            result = (Error.UNKNOWN_ERROR, ("An unknown error occured.", None))
 
-    def is_rersponse_status_ok(self):
-        return self.http_code == 200
+        self.error = result[0]
+        if isinstance(result[1], tuple):
+            self.error_text = result[1][0]
+            self.error_description = result[1][1]
+        elif result[1]:
+            (self.error_text, self.error_description) = result[1](text)
 
     def has_error(self):
         return self.error != Error.OK
+
+    def __error_from_server(self, response):
+        errors = json.loads(response)
+        return (errors['error'] if 'error' in errors else None,
+                errors['error_description']
+                if 'error_description' in errors else None)
 
 
 class Api(ABC):
