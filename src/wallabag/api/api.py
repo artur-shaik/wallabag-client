@@ -119,6 +119,13 @@ class Api(ABC):
 
     VERSION_RE = re.compile('"\\d+\\.\\d+\\.\\d+"')
     URL_RE = re.compile("(?i)https?:\\/\\/.+")
+    REQUEST_METHODS = {
+        Verbs.GET: requests.get,
+        Verbs.DELETE: requests.delete,
+        Verbs.POST: requests.post,
+        Verbs.PATCH: requests.patch,
+        Verbs.HEAD: requests.head
+    }
 
     class Request:
         type = None
@@ -243,15 +250,7 @@ class Api(ABC):
 
     def __make_request(self, request):
         try:
-            request_methods = {
-                Verbs.GET: requests.get,
-                Verbs.DELETE: requests.delete,
-                Verbs.POST: requests.post,
-                Verbs.PATCH: requests.patch,
-                Verbs.HEAD: requests.head
-            }
-
-            result = request_methods[request.type](
+            result = Api.REQUEST_METHODS[request.type](
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data)
             response = Response(result.status_code, result.text)
