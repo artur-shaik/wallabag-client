@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 import click
 
-from wallabag.api.api import Api, Error, ApiException, MINIMUM_API_VERSION_HR
+from wallabag.api.api import Api, Error, ApiException, MINIMUM_API_VERSION
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.config import Options, Sections
@@ -144,7 +144,7 @@ class ServerurlOption(ConfigOption):
             raise ValueError(
                     f"Your wallabag instance is too old. \
                             You need at least version \
-                            {MINIMUM_API_VERSION_HR}.")
+                            {MINIMUM_API_VERSION}.")
 
     def check_and_apply(self, value):
         value = self._check_existence_or_default(value.strip())

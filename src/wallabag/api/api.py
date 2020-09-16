@@ -9,8 +9,7 @@ import requests
 
 from wallabag.config import Options, Sections
 
-MINIMUM_API_VERSION = 2, 1, 1
-MINIMUM_API_VERSION_HR = "2.1.1"
+MINIMUM_API_VERSION = "2.1.1"
 
 
 class ApiException(Exception):
@@ -117,7 +116,7 @@ class Response:
 
 class Api(ABC):
 
-    VERSION_RE = re.compile('"\\d+\\.\\d+\\.\\d+"')
+    VERSION_RE = re.compile('\\d+\\.\\d+\\.\\d+')
     URL_RE = re.compile("(?i)https?:\\/\\/.+")
     REQUEST_METHODS = {
         Verbs.GET: requests.get,
@@ -155,7 +154,7 @@ class Api(ABC):
             return False
 
         ver = versionstring.strip('"')
-        return version.parse(MINIMUM_API_VERSION_HR) <= version.parse(ver)
+        return version.parse(MINIMUM_API_VERSION) <= version.parse(ver)
 
     def _build_url(self, api_method, url=None):
         try:
