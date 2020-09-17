@@ -9,6 +9,7 @@ from sys import exit
 
 import click
 
+from wallabag.commands.list import ListCommand
 from wallabag.config import Configs
 from wallabag.configurator import (
         ClientOption,
@@ -89,8 +90,15 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
     if count:
         wallabag_list.count_entries(config, read, starred)
     else:
-        wallabag_list.list_entries(
-            config, quantity, read, starred, oldest, trim_output)
+        params = ListCommand.Params()
+        params.custom_quantity = quantity
+        params.filter_read = read
+        params.filter_starred = starred
+        params.oldest = oldest
+        params.trim = trim_output
+        result, output = ListCommand(config, params).list_entries()
+        if result:
+            print("\n".join(output))
 
 
 @cli.command()

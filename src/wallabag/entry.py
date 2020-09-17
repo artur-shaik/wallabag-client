@@ -27,12 +27,11 @@ class Entry:
         self.read = item['is_archived'] == 1
         self.starred = item['is_starred'] == 1
 
-
-def entrylist(items):
-    """
-    Creates Entry instances of multiple items and returns an Entry-list.
-    """
-    ret = list()
-    for item in items:
-        ret.append(Entry(item))
-    return ret
+    def entrylist(items):
+        """
+        Creates Entry instances of multiple items and returns an Entry-list.
+        """
+        ret = list()
+        for item in items:
+            ret.append(Entry(item))
+        return ret
