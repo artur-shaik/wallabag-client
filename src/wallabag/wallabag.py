@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-The main entry point of wallabag-cli.
-"""
+
 import functools
 import platform
 import subprocess
@@ -9,7 +7,7 @@ from sys import exit
 
 import click
 
-from wallabag.commands.list import ListCommand
+from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.config import Configs
 from wallabag.configurator import (
         ClientOption,
@@ -21,7 +19,6 @@ from wallabag.configurator import (
 
 from . import wallabag_add
 from . import wallabag_delete
-from . import wallabag_list
 from . import wallabag_show
 from . import wallabag_update
 
@@ -87,18 +84,10 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
         read = None
         starred = None
 
-    if count:
-        wallabag_list.count_entries(config, read, starred)
-    else:
-        params = ListCommand.Params()
-        params.custom_quantity = quantity
-        params.filter_read = read
-        params.filter_starred = starred
-        params.oldest = oldest
-        params.trim = trim_output
-        result, output = ListCommand(config, params).list_entries()
-        if result:
-            print("\n".join(output))
+    params = ListParams(quantity, read, starred, oldest, trim_output)
+    run_command(
+            CountCommand(config, params) if count else
+            ListCommand(config, params))
 
 
 @cli.command()
@@ -243,3 +232,11 @@ def config(ctx, check, password, oauth):
         if result or not options:
             click.echo(msg)
             exit(0)
+
+
+def run_command(command):
+    result, output = command.run()
+    if output:
+        click.echo(output)
+    if not result:
+        exit(1)

@@ -6,23 +6,33 @@ import sys
 
 from wallabag.api.api import ApiException
 from wallabag.api.get_list_entries import GetListEntries, Params
+from wallabag.commands.command import Command
 from wallabag.entry import Entry
 
 
-class ListCommand():
+class ListParams():
+    custom_quantity = None
+    filter_read = None
+    filter_starred = None
+    oldest = False
+    trim = True
 
-    class Params():
-        custom_quantity = None
-        filter_read = None
-        filter_starred = None
-        oldest = False
-        trim = True
+    def __init__(self, custom_quantity, filter_read,
+                 filter_starred, oldest, trim):
+        self.custom_quantity = custom_quantity
+        self.filter_read = filter_read
+        self.filter_starred = filter_starred
+        self.oldest = oldest
+        self.trim = trim
+
+
+class ListCommand(Command):
 
     def __init__(self, config, params=None):
         self.config = config
-        self.params = params or ListCommand.Params()
+        self.params = params or ListParams()
 
-    def list_entries(self):
+    def run(self):
         quantity = None
         if self.params.custom_quantity is None:
             try:
@@ -43,9 +53,7 @@ class ListCommand():
             request = api.request()
             response = request.response
         except ApiException as ex:
-            print(f"Error: {ex.error_text} - {ex.error_description}")
-            print()
-            exit(-1)
+            return False, f"Error: {ex.error_text} - {ex.error_description}"
 
         entries = Entry.entrylist(response['_embedded']["items"])
         return True, self.print_entries(entries)
@@ -102,4 +110,24 @@ class ListCommand():
 
             line = line + " {0}".format(title)
             output.append(line[0:maxlength])
-        return output
+        return '\n'.join(output)
+
+
+class CountCommand(Command):
+
+    def __init__(self, config, params=None):
+        self.config = config
+        self.params = params or ListParams()
+
+    def run(self):
+        try:
+            api = GetListEntries(self.config, {
+                Params.COUNT: sys.maxsize,
+                Params.FILTER_READ: self.params.filter_read,
+                Params.FILTER_STARRED: self.params.filter_starred
+            })
+            response = api.request().response
+        except ApiException as ex:
+            return False, f"Error: {ex.error_text} - {ex.error_description}"
+
+        return True, len(response["_embedded"]["items"])
