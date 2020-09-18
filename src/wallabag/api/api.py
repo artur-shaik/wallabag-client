@@ -118,6 +118,8 @@ class Api(ABC):
 
     VERSION_RE = re.compile('\\d+\\.\\d+\\.\\d+')
     URL_RE = re.compile("(?i)https?:\\/\\/.+")
+    HEAD_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
+    (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
     REQUEST_METHODS = {
         Verbs.GET: requests.get,
         Verbs.DELETE: requests.delete,
@@ -249,6 +251,8 @@ class Api(ABC):
 
     def __make_request(self, request):
         try:
+            if not request.headers and request.type == Verbs.HEAD:
+                request.headers = {'user-agent': Api.HEAD_UA}
             result = Api.REQUEST_METHODS[request.type](
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data)
