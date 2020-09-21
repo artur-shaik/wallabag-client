@@ -4,7 +4,7 @@ import pytest
 
 from wallabag.api.api import Response
 from wallabag.api.get_list_entries import GetListEntries
-from wallabag.commands.list import ListCommand
+from wallabag.commands.list import ListCommand, ListParams
 from wallabag.config import Configs
 
 
@@ -31,7 +31,7 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.list_entries()
+        result, entries = command.run()
         assert result
         assert not entries
 
@@ -59,10 +59,10 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.list_entries()
+        result, entries = command.run()
         assert result
         assert entries
-        assert entries[0] == values[1]
+        assert entries == values[1]
 
     def test_list(self, monkeypatch):
 
@@ -80,6 +80,6 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.list_entries()
+        result, entries = command.run()
         assert result
-        assert len(entries) == 2
+        assert len(entries.split('\n')) == 2

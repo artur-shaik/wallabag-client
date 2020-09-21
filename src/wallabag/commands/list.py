@@ -11,15 +11,15 @@ from wallabag.entry import Entry
 
 
 class ListParams():
-    custom_quantity = None
+    quantity = None
     filter_read = None
     filter_starred = None
     oldest = False
     trim = True
 
-    def __init__(self, custom_quantity, filter_read,
-                 filter_starred, oldest, trim):
-        self.custom_quantity = custom_quantity
+    def __init__(self, quantity=None, filter_read=None,
+                 filter_starred=None, oldest=None, trim=None):
+        self.quantity = quantity
         self.filter_read = filter_read
         self.filter_starred = filter_starred
         self.oldest = oldest
@@ -33,73 +33,31 @@ class ListCommand(Command):
         self.params = params or ListParams()
 
     def run(self):
-        quantity = None
-        if self.params.custom_quantity is None:
-            try:
-                quantity = os.get_terminal_size().lines - 2
-            # piped output to file or other process
-            except OSError:
-                quantity = sys.maxsize
-        else:
-            quantity = self.params.custom_quantity
-
         try:
             api = GetListEntries(self.config, {
-                Params.COUNT: quantity,
+                Params.COUNT: self.__get_quantity(),
                 Params.FILTER_READ: self.params.filter_read,
                 Params.FILTER_STARRED: self.params.filter_starred,
                 Params.OLDEST: self.params.oldest
             })
-            request = api.request()
-            response = request.response
+            entries = Entry.entrylist(
+                    api.request().response['_embedded']["items"])
+            return True, self.__print_entries(entries)
         except ApiException as ex:
             return False, f"Error: {ex.error_text} - {ex.error_description}"
 
-        entries = Entry.entrylist(response['_embedded']["items"])
-        return True, self.print_entries(entries)
-
-    def print_entries(self, entries):
-        maxlength = sys.maxsize
-        if self.params.trim:
-            try:
-                maxlength = os.get_terminal_size().columns
-            # piped output to file or other process
-            except OSError:
-                maxlength = sys.maxsize
-        size_entry_id = 0
-        show_read_column = False
-        show_starred_column = False
-        if len(entries) > 0:
-            size_entry_id = len(str(entries[0].entry_id))
-            entry_id_last = len(str(entries[len(entries) - 1].entry_id))
-            if entry_id_last > size_entry_id:
-                size_entry_id = entry_id_last
-
-        for item in entries:
-            if item.read:
-                show_read_column = True
-            if item.starred:
-                show_starred_column = True
-
+    def __print_entries(self, entries):
+        show_read_column, show_starred_column = self.__read_star_width(entries)
+        entry_id_width = self.__entry_id_width(entries)
+        maxwidth = self.__get_maxwidth()
+        output = []
         if not self.params.oldest:
             entries = reversed(entries)
-        output = []
         for item in entries:
-            entry_id = str(item.entry_id).rjust(size_entry_id)
-
-            read = " "
-            if item.read:
-                if platform.system() == "Windows":
-                    read = "r"
-                else:
-                    read = "✔"
-
-            starred = " "
-            if item.starred:
-                starred = "*"
+            entry_id = str(item.entry_id).rjust(entry_id_width)
 
             title = item.title
-
+            read, starred = self.__read_star_char(item)
             line = entry_id
             if show_read_column or show_starred_column:
                 line = line + " "
@@ -108,9 +66,61 @@ class ListCommand(Command):
                 if show_starred_column:
                     line = line + starred
 
-            line = line + " {0}".format(title)
-            output.append(line[0:maxlength])
+            line = f"{line} {title}"
+            output.append(line[0:maxwidth])
         return '\n'.join(output)
+
+    def __get_quantity(self):
+        if self.params.quantity is None:
+            try:
+                return os.get_terminal_size().lines - 2
+            except OSError:
+                return sys.maxsize
+        else:
+            return self.params.quantity
+
+    def __get_maxwidth(self):
+        if self.params.trim:
+            try:
+                return os.get_terminal_size().columns
+            except OSError:
+                pass
+        return sys.maxsize
+
+    def __entry_id_width(self, entries):
+        if len(entries) > 0:
+            size_entry_id = len(str(entries[0].entry_id))
+            entry_id_last = len(str(entries[len(entries) - 1].entry_id))
+            if entry_id_last > size_entry_id:
+                size_entry_id = entry_id_last
+            return size_entry_id
+        return 0
+
+    def __read_star_width(self, entries):
+        show_read_column = False
+        show_starred_column = False
+        for item in entries:
+            if item.read:
+                show_read_column = True
+            if item.starred:
+                show_starred_column = True
+            if show_read_column and show_starred_column:
+                break
+        return (show_read_column, show_starred_column)
+
+    def __read_star_char(self, item):
+        read = " "
+        if item.read:
+            if platform.system() == "Windows":
+                read = "r"
+            else:
+                read = "✔"
+
+        starred = " "
+        if item.starred:
+            starred = "*"
+
+        return (read, starred)
 
 
 class CountCommand(Command):
