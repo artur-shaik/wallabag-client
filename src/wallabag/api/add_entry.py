@@ -7,7 +7,7 @@ from wallabag.api.api import Api, ApiMethod, ValueException
 
 class Params(Enum):
     TITLE = "title"
-    STAR = "star"
+    STARRED = "starred"
     READ = "read"
 
 
@@ -39,8 +39,8 @@ class AddEntry(Api):
         }
         if Params.TITLE in self.params and self.params[Params.TITLE]:
             data[ApiParams.TITLE.value] = self.params[Params.TITLE]
-        if Params.STAR in self.params:
-            self._put_bool_param(data, Params.STAR, ApiParams.STARRED)
+        if Params.STARRED in self.params:
+            self._put_bool_param(data, Params.STARRED, ApiParams.STARRED)
         if Params.READ in self.params:
             self._put_bool_param(data, Params.READ, ApiParams.ARCHIVE)
         if not data:

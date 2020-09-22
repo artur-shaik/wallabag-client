@@ -8,6 +8,7 @@ from sys import exit
 import click
 
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
+from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
         ClientOption,
@@ -17,7 +18,6 @@ from wallabag.configurator import (
         Validator,
     )
 
-from . import wallabag_add
 from . import wallabag_delete
 from . import wallabag_show
 from . import wallabag_update
@@ -154,7 +154,8 @@ def star(entry_id, quiet):
 @click.pass_context
 def add(ctx, url, title, read, starred, quiet):
     """Add a new entry to wallabag."""
-    wallabag_add.add(ctx.obj, url, title, starred, read, quiet)
+    params = AddCommandParams(url, title, read, starred)
+    run_command(AddCommand(ctx.obj, params), quiet)
 
 
 @cli.command()
@@ -234,9 +235,9 @@ def config(ctx, check, password, oauth):
             exit(0)
 
 
-def run_command(command):
+def run_command(command, quiet=False):
     result, output = command.run()
-    if output:
+    if not quiet and output:
         click.echo(output)
     if not result:
         exit(1)

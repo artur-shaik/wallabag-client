@@ -37,8 +37,8 @@ class TestAddEntry():
             AddEntry.ApiParams.TITLE, "custom title"),
         (Params.READ, True, AddEntry.ApiParams.ARCHIVE, 1),
         (Params.READ, False, AddEntry.ApiParams.ARCHIVE, 0),
-        (Params.STAR, True, AddEntry.ApiParams.STARRED, 1),
-        (Params.STAR, False, AddEntry.ApiParams.STARRED, 0),
+        (Params.STARRED, True, AddEntry.ApiParams.STARRED, 1),
+        (Params.STARRED, False, AddEntry.ApiParams.STARRED, 0),
         ])
     def test_params(self, monkeypatch, values):
         monkeypatch.setattr(AddEntry, '_is_valid_url', _is_valid_url)
@@ -55,7 +55,7 @@ class TestAddEntry():
 
         api = AddEntry(self.config, "", {
             Params.TITLE: "",
-            Params.STAR: None
+            Params.STARRED: None
         })
 
         with pytest.raises(ValueException):
