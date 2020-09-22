@@ -49,6 +49,7 @@ class Error(Enum):
     HTTP_UNAUTHORIZED = 401
     HTTP_FORBIDDEN = 403
     HTTP_NOT_FOUND = 404
+    METHOD_NOT_ALLOWED = 405
     UNKNOWN_ERROR = 999
 
 
@@ -81,7 +82,10 @@ class Response:
 
     def __init__(self, status_code, text):
         if text:
-            self.response = json.loads(text)
+            try:
+                self.response = json.loads(text)
+            except json.decoder.JSONDecodeError:
+                self.response = text
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
             400: (Error.HTTP_BAD_REQUEST, self.__error_from_server),
@@ -89,6 +93,7 @@ class Response:
             403: (Error.HTTP_FORBIDDEN,
                   ("403: Could not reach API due to rights issues.", None)),
             404: (Error.HTTP_NOT_FOUND, ("404: API was not found.", None)),
+            405: (Error.METHOD_NOT_ALLOWED, ("405: Method not allowed.", None)),
             200: (Error.OK, None),
             418: (Error.OK, None),
         }
@@ -96,7 +101,7 @@ class Response:
         if status_code in errors:
             result = errors.get(status_code)
         else:
-            result = (Error.UNKNOWN_ERROR, ("An unknown error occured.", None))
+            result = (Error.UNKNOWN_ERROR, (f"An unknown error occured. {status_code}", None))
 
         self.error = result[0]
         if isinstance(result[1], tuple):
@@ -188,9 +193,20 @@ class Api(ABC):
         return self.__make_request(request)
 
     def _is_valid_url(self, url):
-        request = Api.Request()
-        request.url = url
-        return not self._request_head(request).has_error()
+        try_method_get = False
+        while True:
+            request = Api.Request()
+            request.url = url
+            request.headers = {'user-agent': Api.HEAD_UA}
+            if not try_method_get:
+                result = self._request_head(request)
+                if result.error == Error.METHOD_NOT_ALLOWED:
+                    try_method_get = True
+                    continue
+            else:
+                result = self._request_get(request)
+            break
+        return not result.has_error()
 
     def _validate_url(self, url):
         if not url:
@@ -251,8 +267,6 @@ class Api(ABC):
 
     def __make_request(self, request):
         try:
-            if not request.headers and request.type == Verbs.HEAD:
-                request.headers = {'user-agent': Api.HEAD_UA}
             result = Api.REQUEST_METHODS[request.type](
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data)
