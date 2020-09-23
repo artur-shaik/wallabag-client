@@ -21,6 +21,10 @@ class ApiException(Exception):
         self.error_text = error_text
         self.error_description = error_description
 
+    def __str__(self):
+        desc = f"- {self.error_description}" if self.error_description else ""
+        return f"Error: {self.error_text}{desc}"
+
 
 class OAuthException(ApiException):
     pass

@@ -39,4 +39,4 @@ class AddCommand(Command):
             }).request()
             return True, "Entry successfully added."
         except ApiException as ex:
-            return False, f"Error: {ex.error_text} - {ex.error_description}"
+            return False, str(ex)

@@ -44,7 +44,7 @@ class ListCommand(Command):
                     api.request().response['_embedded']["items"])
             return True, self.__print_entries(entries)
         except ApiException as ex:
-            return False, f"Error: {ex.error_text} - {ex.error_description}"
+            return False, str(ex)
 
     def __print_entries(self, entries):
         show_read_column, show_starred_column = self.__read_star_width(entries)
@@ -138,6 +138,6 @@ class CountCommand(Command):
             })
             response = api.request().response
         except ApiException as ex:
-            return False, f"Error: {ex.error_text} - {ex.error_description}"
+            return False, str(ex)
 
         return True, len(response["_embedded"]["items"])
