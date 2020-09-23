@@ -7,8 +7,9 @@ from sys import exit
 
 import click
 
-from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.add import AddCommand, AddCommandParams
+from wallabag.commands.list import ListCommand, ListParams, CountCommand
+from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
         ClientOption,
@@ -19,7 +20,6 @@ from wallabag.configurator import (
     )
 
 from . import wallabag_delete
-from . import wallabag_show
 from . import wallabag_update
 
 
@@ -92,21 +92,24 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
 
 @cli.command()
 @click.option('-c/-n', '--color/--no-color', default=True)
+@click.option('-i', '--image-links', default=False, is_flag=True,
+              help="Show image links in optimized output")
 @click.option('-r', '--raw', default=False, is_flag=True,
-              help="Disable wordwise trimming.")
+              help="Disable wordwise trimming")
 @click.option('-t', '--html', default=False, is_flag=True,
               help="Show the entry as html instead of optimized output for \
 the cli.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def show(ctx, entry_id, color, raw, html):
+def show(ctx, entry_id, color, html, raw, image_links):
     """
     Show the text of an entry.
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_show.show(ctx.obj, entry_id, color, raw, html)
+    run_command(ShowCommand(
+        ctx.obj, ShowCommandParams(entry_id, color, html, raw, image_links)))
 
 
 @cli.command()

@@ -97,7 +97,8 @@ class Response:
             403: (Error.HTTP_FORBIDDEN,
                   ("403: Could not reach API due to rights issues.", None)),
             404: (Error.HTTP_NOT_FOUND, ("404: API was not found.", None)),
-            405: (Error.METHOD_NOT_ALLOWED, ("405: Method not allowed.", None)),
+            405: (Error.METHOD_NOT_ALLOWED,
+                  ("405: Method not allowed.", None)),
             200: (Error.OK, None),
             418: (Error.OK, None),
         }
@@ -105,7 +106,8 @@ class Response:
         if status_code in errors:
             result = errors.get(status_code)
         else:
-            result = (Error.UNKNOWN_ERROR, (f"An unknown error occured. {status_code}", None))
+            result = (Error.UNKNOWN_ERROR,
+                      (f"An unknown error occured. {status_code}", None))
 
         self.error = result[0]
         if isinstance(result[1], tuple):
