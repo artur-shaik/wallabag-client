@@ -8,6 +8,7 @@ from sys import exit
 import click
 
 from wallabag.commands.add import AddCommand, AddCommandParams
+from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.config import Configs
@@ -19,7 +20,6 @@ from wallabag.configurator import (
         Validator,
     )
 
-from . import wallabag_delete
 from . import wallabag_update
 
 
@@ -175,7 +175,8 @@ def delete(ctx, entry_id, force, quiet):
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_delete.delete(ctx.obj, entry_id, force, quiet)
+    params = DeleteCommandParams(entry_id, force, quiet)
+    run_command(DeleteCommand(ctx.obj, params))
 
 
 @cli.command()
