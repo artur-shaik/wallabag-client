@@ -11,6 +11,7 @@ from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
+from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
         ClientOption,
@@ -19,8 +20,6 @@ from wallabag.configurator import (
         SecretOption,
         Validator,
     )
-
-from . import wallabag_update
 
 
 @click.group()
@@ -117,7 +116,8 @@ def show(ctx, entry_id, color, html, raw, image_links):
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
-def read(entry_id, quiet):
+@click.pass_context
+def read(ctx, entry_id, quiet):
     """
     Toggle the read-status of an existing entry.
 
@@ -125,7 +125,10 @@ def read(entry_id, quiet):
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_update.update(entry_id, toggle_read=True, quiet=quiet)
+    params = UpdateCommandParams(entry_id)
+    params.toggle_read = True
+    params.quiet = quiet
+    run_command(UpdateCommand(ctx.obj, params))
 
 
 @cli.command()
@@ -133,7 +136,8 @@ def read(entry_id, quiet):
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
-def star(entry_id, quiet):
+@click.pass_context
+def star(ctx, entry_id, quiet):
     """
     Toggle the starred-status of an existing entry.
 
@@ -141,7 +145,10 @@ def star(entry_id, quiet):
 
     The ENTRY_ID can be found with `list` command.
     """
-    wallabag_update.update(entry_id, toggle_star=True, quiet=quiet)
+    params = UpdateCommandParams(entry_id)
+    params.toggle_star = True
+    params.quiet = quiet
+    run_command(UpdateCommand(ctx.obj, params))
 
 
 @cli.command()
@@ -197,11 +204,12 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
 
         The ENTRY_ID can be found with `list` command.
     """
-    if not title and not toggle_read and not toggle_starred:
-        click.echo("Error: No parameter given.")
-        exit(-1)
-    wallabag_update.update(
-            ctx.obj, entry_id, toggle_read, toggle_starred, title, quiet)
+    params = UpdateCommandParams(entry_id)
+    params.new_title = title
+    params.toggle_read = toggle_read
+    params.toggle_star = toggle_starred
+    params.quiet = quiet
+    run_command(UpdateCommand(ctx.obj, params))
 
 
 @cli.command()

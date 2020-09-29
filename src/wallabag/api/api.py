@@ -84,7 +84,7 @@ class Response:
 
     response = None
 
-    def __init__(self, status_code, text):
+    def __init__(self, status_code, text=None):
         if text:
             try:
                 self.response = json.loads(text)
