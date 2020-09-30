@@ -1,16 +1,12 @@
-# wallabag-cli
+# wallabag-client
 
-Wallabag-cli is a command line client for the self hosted read-it-later app [wallabag](https://www.wallabag.org/). Unlike to other services, wallabag is free and open source.
+Wallabag-client is a command line client for the self hosted read-it-later app [wallabag](https://www.wallabag.org/). Unlike to other services, wallabag is free and open source.
 
---------------------------------------------------------------------------------
-
-## Documentation
-
-Please have a look at the [documentation overview](docs/index.md) to begin using wallabag-cli.
+Wallabag-client is refactored version of existed wallabag-cli tool.
 
 --------------------------------------------------------------------------------
 
-**Already implemented features**
+## Features
 
 - List entries (filterable)
 - Show the content of an entry
@@ -19,7 +15,3 @@ Please have a look at the [documentation overview](docs/index.md) to begin using
 - Mark existing entries as read
 - Mark existing entries as starred
 - Change the title of existing entries
-
-**Missing features**
-
-- Export articles (Wallabag 2.2 or above)
