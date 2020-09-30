@@ -1,19 +1,21 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='wallabag-client',
+    name='wallabag-client-ashaik',
     use_scm_version=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
     url='https://github.com/artur-shaik/wallabag-client',
     author='Artur Shaik',
-    description='A command-line client for the self-hosted \
-            read-it-later app Wallabag',
+    author_email='artur@shaik.link',
+    description=('A command-line client for the self-hosted '
+                 '`read-it-later` app Wallabag'),
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
+    python_requires='>=3.6',
 
     setup_requires=[
         'pytest-runner==5.1',
