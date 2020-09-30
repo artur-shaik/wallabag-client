@@ -21,9 +21,12 @@ setup(
         'wheel',
     ],
     install_requires=[
-        'beautifulsoup4>=4.5.1',
+        'beautifulsoup4>=4.9.1',
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
+        'click>=7.1.2',
+        'xdg=>4.0.1',
+        'colorama=>0.4.3'
     ],
     tests_require=[
         'pytest==4.6.3',
