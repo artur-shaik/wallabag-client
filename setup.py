@@ -1,7 +1,10 @@
 from setuptools import find_packages, setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
-    name='wallabag-client-ashaik',
+    name='wallabag-client',
     use_scm_version=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
@@ -10,6 +13,8 @@ setup(
     author_email='artur@shaik.link',
     description=('A command-line client for the self-hosted '
                  '`read-it-later` app Wallabag'),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
