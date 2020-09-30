@@ -1,12 +1,12 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='wallabag-cli',
+    name='wallabag-client',
     use_scm_version=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    url='https://github.com/apetresc/wallabag-cli',
-    author='Michael Scholz',
+    url='https://github.com/artur-shaik/wallabag-client',
+    author='Artur Shaik',
     description='A command-line client for the self-hosted \
             read-it-later app Wallabag',
     classifiers=[
@@ -18,12 +18,14 @@ setup(
     setup_requires=[
         'pytest-runner==5.1',
         'setuptools_scm==3.3.3',
-        'wheel',
     ],
     install_requires=[
-        'beautifulsoup4>=4.5.1',
+        'beautifulsoup4>=4.9.1',
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
+        'click>=7.1.2',
+        'xdg>=4.0.1',
+        'colorama>=0.4.3'
     ],
     tests_require=[
         'pytest==4.6.3',
