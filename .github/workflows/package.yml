@@ -1,10 +1,32 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - v*
 
 jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    name: Publish GitHub Release
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.x
+      - name: Install build dependencies
+        run: pip install wheel
+      - name: Build packages
+        run: python setup.py sdist bdist_wheel
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
   deploy:
 
     runs-on: ubuntu-latest
