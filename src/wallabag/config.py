@@ -11,7 +11,7 @@ from pathlib import PurePath
 from Crypto.Cipher import AES
 from Crypto.Hash import MD5
 
-from xdg import XDG_CONFIG_HOME
+from xdg.BaseDirectory import xdg_config_home as XDG_CONFIG_HOME
 
 
 CONFIG_DIRECTORY = os.path.expanduser(XDG_CONFIG_HOME)

@@ -31,7 +31,7 @@ setup(
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
         'click>=7.1.2',
-        'xdg>=4.0.1',
+        'pyxdg',
         'colorama>=0.4.3'
     ],
     tests_require=[

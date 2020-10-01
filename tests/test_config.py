@@ -5,7 +5,7 @@ import pytest
 
 from wallabag.config import Configs, Options, Sections
 
-from xdg import XDG_CONFIG_HOME
+from xdg.BaseDirectory import xdg_config_home as XDG_CONFIG_HOME
 
 
 class TestConfigs():
