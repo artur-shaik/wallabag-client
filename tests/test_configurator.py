@@ -10,7 +10,7 @@ from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.config import Configs, Options, Sections
 from wallabag.configurator import (
-        ClientOption, PasswordOption, SecretOption,
+        ClientOption, Configurator, PasswordOption, SecretOption,
         ServerurlOption, UsernameOption, Validator)
 
 
@@ -49,6 +49,28 @@ class TestConfigurator():
                 client = 100
                 secret = 100
                 """)
+
+    def test_init_configurator(self):
+        c = Configurator(self.configs)
+        assert c.config == self.configs
+
+    def test_option_pass(self, monkeypatch):
+        setup_runned = False
+
+        def setup(self, config):
+            nonlocal setup_runned
+            setup_runned = True
+            return True
+
+        def save(self):
+            pass
+
+        monkeypatch.setattr(UsernameOption, 'setup', setup)
+        monkeypatch.setattr(Configs, 'save', save)
+
+        c = Configurator(self.configs)
+        c.start([UsernameOption()])
+        assert setup_runned
 
     @pytest.mark.parametrize(
             'values',
