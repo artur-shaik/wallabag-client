@@ -18,12 +18,12 @@ class GetListEntries(Api):
 
     class ApiParams(Enum):
         PER_PAGE = "perPage"
-        OLDEST = "oldest"
+        ORDER = "order"
         ARCHIVE = "archive"
         STARRED = "starred"
 
     class ApiValues(Enum):
-        class OLDEST(Enum):
+        class ORDER(Enum):
             ASC = "asc"
 
     def __init__(self, config, params):
@@ -45,7 +45,7 @@ class GetListEntries(Api):
         }
 
         if Params.OLDEST in self.params and self.params[Params.OLDEST]:
-            api_params[ApiParams.OLDEST.value] = ApiValues.OLDEST.value.ASC
+            api_params[ApiParams.ORDER.value] = ApiValues.ORDER.value.ASC.value
 
         if Params.FILTER_READ in self.params:
             self._put_bool_param(
