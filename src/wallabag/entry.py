@@ -1,12 +1,6 @@
-"""
-Wallabag entry.
-"""
-
+# -*- coding: utf-8 -*-
 
 class Entry:
-    """
-    The entry class.
-    """
     entry_id = 0
     title = ""
     content = ""
@@ -27,10 +21,7 @@ class Entry:
         self.read = item['is_archived'] == 1
         self.starred = item['is_starred'] == 1
 
-    def entrylist(items):
-        """
-        Creates Entry instances of multiple items and returns an Entry-list.
-        """
+    def create_list(items):
         ret = list()
         for item in items:
             ret.append(Entry(item))

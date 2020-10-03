@@ -40,7 +40,7 @@ class ListCommand(Command):
                 Params.FILTER_STARRED: self.params.filter_starred,
                 Params.OLDEST: self.params.oldest
             })
-            entries = Entry.entrylist(
+            entries = Entry.create_list(
                     api.request().response['_embedded']["items"])
             return True, self.__print_entries(entries)
         except ApiException as ex:
