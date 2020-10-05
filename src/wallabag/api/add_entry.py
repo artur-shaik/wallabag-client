@@ -9,6 +9,7 @@ class Params(Enum):
     TITLE = "title"
     STARRED = "starred"
     READ = "read"
+    TAGS = "tags"
 
 
 class AddEntry(Api):
@@ -20,6 +21,7 @@ class AddEntry(Api):
         TITLE = "title"
         STARRED = "starred"
         ARCHIVE = "archive"
+        TAGS = "tags"
 
     def __init__(self, config, url, params):
         Api.__init__(self, config)
@@ -43,6 +45,8 @@ class AddEntry(Api):
             self._put_bool_param(data, Params.STARRED, ApiParams.STARRED)
         if Params.READ in self.params:
             self._put_bool_param(data, Params.READ, ApiParams.ARCHIVE)
+        if Params.TAGS in self.params:
+            data[ApiParams.TAGS.value] = self.params[Params.TAGS]
         if not data:
             raise ValueException("The data object is empty")
         return data

@@ -157,14 +157,15 @@ def star(ctx, entry_id, quiet):
               help="Mark as read.")
 @click.option('-s', '--starred', default=False, is_flag=True,
               help="Mark as starred.")
+@click.option('-a', '--tags', help="Comma-separated list of tags")
 @click.option('-q', '--quiet', default=False, is_flag=True,
               help="Hide the output if no error occurs.")
 @click.argument('url', required=True)
 @need_config
 @click.pass_context
-def add(ctx, url, title, read, starred, quiet):
+def add(ctx, url, title, read, starred, tags, quiet):
     """Add a new entry to wallabag."""
-    params = AddCommandParams(url, title, read, starred)
+    params = AddCommandParams(url, title, read, starred, tags)
     run_command(AddCommand(ctx.obj, params), quiet)
 
 

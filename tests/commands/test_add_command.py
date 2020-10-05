@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from wallabag.api.api import Response
+import pytest
+
 from wallabag.api.add_entry import AddEntry
+from wallabag.api.api import Response
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.config import Configs
@@ -81,3 +83,42 @@ class TestAddCommand():
         assert make_request_runned
         assert result[0]
         assert result[1] == "Entry successfully added."
+
+    @pytest.mark.parametrize('tags', [
+        ('tag', ['tag']), ('tag1,tag2', ['tag1', 'tag2']), ('tag,', ['tag']),
+        ('tag,tag,', ['tag']), ('tag1 ,tag2', ['tag1', 'tag2']),
+        ('tag1, tag2, ', ['tag1', 'tag2']), ('', [])])
+    def test_add_with_tags(self, monkeypatch, tags):
+        make_request_runned = False
+        url = "http://test/url"
+        title = 'test title'
+
+        def entry_not_exists(self):
+            return Response(200, '{"exists": 0}')
+
+        def _validate_url(self, url):
+            return url
+
+        def _make_request(self, request):
+            nonlocal make_request_runned
+            make_request_runned = True
+            assert request.data[AddEntry.ApiParams.URL.value] == url
+            assert request.data[
+                    AddEntry.ApiParams.TAGS.value].split(',') == tags[1]
+            assert request.data[AddEntry.ApiParams.TITLE.value] == title
+            return Response(200, None)
+
+        monkeypatch.setattr(EntryExists, 'request', entry_not_exists)
+        monkeypatch.setattr(AddEntry, '_make_request', _make_request)
+        monkeypatch.setattr(AddEntry, '_validate_url', _validate_url)
+
+        params = AddCommandParams(url, title, tags=tags[0])
+        result = AddCommand(self.config, params).run()
+        if tags[0]:
+            assert make_request_runned
+            assert result[0]
+            assert result[1] == "Entry successfully added."
+        else:
+            assert not make_request_runned
+            assert not result[0]
+            assert result[1] == "tags value is empty"
