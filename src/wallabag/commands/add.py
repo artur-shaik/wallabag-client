@@ -4,9 +4,10 @@ from wallabag.api.api import ApiException
 from wallabag.api.add_entry import AddEntry, Params
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.command import Command
+from wallabag.commands.tags_param import TagsParam
 
 
-class AddCommandParams():
+class AddCommandParams(TagsParam):
     target_url = None
     title = None
     starred = None
@@ -22,13 +23,9 @@ class AddCommandParams():
         self.tags = tags
 
     def validate(self):
-        if self.tags is not None:
-            used = set()
-            self.tags = ",".join([x.strip() for x in self.tags.split(',')
-                                  if x.strip() and x not in used and
-                                  (used.add(x) or True)])
-            if not self.tags:
-                return False, 'tags value is empty'
+        result, msg = self._validate_tags()
+        if not result:
+            return False, msg
         return True, None
 
 

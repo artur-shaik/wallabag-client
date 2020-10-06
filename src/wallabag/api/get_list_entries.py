@@ -10,6 +10,7 @@ class Params(Enum):
     FILTER_READ = "filter_read"
     FILTER_STARRED = "filter_starred"
     OLDEST = "oldest"
+    TAGS = "tags"
 
 
 class GetListEntries(Api):
@@ -21,6 +22,7 @@ class GetListEntries(Api):
         ORDER = "order"
         ARCHIVE = "archive"
         STARRED = "starred"
+        TAGS = "tags"
 
     class ApiValues(Enum):
         class ORDER(Enum):
@@ -54,6 +56,9 @@ class GetListEntries(Api):
         if Params.FILTER_STARRED in self.params:
             self._put_bool_param(
                     api_params, Params.FILTER_STARRED, ApiParams.STARRED)
+
+        if Params.TAGS in self.params:
+            api_params[ApiParams.TAGS.value] = self.params[Params.TAGS]
 
         return api_params
 

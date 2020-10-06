@@ -6,6 +6,7 @@ from wallabag.api.api import Response
 from wallabag.api.get_list_entries import GetListEntries
 from wallabag.commands.list import ListCommand, ListParams
 from wallabag.config import Configs
+from tags import tags_test
 
 
 class TestListCommand():
@@ -83,3 +84,27 @@ class TestListCommand():
         result, entries = command.run()
         assert result
         assert len(entries.split('\n')) == 2
+
+    @pytest.mark.parametrize('tags', tags_test)
+    def test_tags_param(self, monkeypatch, tags):
+        make_request_runned = False
+
+        def _make_request(self, request):
+            nonlocal make_request_runned
+            make_request_runned = True
+            assert GetListEntries.ApiParams.TAGS.value in request.api_params
+            assert request.api_params[
+                    GetListEntries.ApiParams.TAGS.value].split(',') == tags[1]
+            text = '{ "_embedded": { "items": [] } }'
+            return Response(200, text)
+
+        monkeypatch.setattr(GetListEntries, '_make_request', _make_request)
+
+        command = ListCommand(self.config, ListParams(tags=tags[0]))
+        result, entries = command.run()
+        if tags[0]:
+            assert make_request_runned
+            assert result
+        else:
+            assert not make_request_runned
+            assert not result

@@ -2,6 +2,7 @@
 
 import pytest
 
+from tags import tags_test
 from wallabag.api.add_entry import AddEntry
 from wallabag.api.api import Response
 from wallabag.api.entry_exists import EntryExists
@@ -84,10 +85,7 @@ class TestAddCommand():
         assert result[0]
         assert result[1] == "Entry successfully added."
 
-    @pytest.mark.parametrize('tags', [
-        ('tag', ['tag']), ('tag1,tag2', ['tag1', 'tag2']), ('tag,', ['tag']),
-        ('tag,tag,', ['tag']), ('tag1 ,tag2', ['tag1', 'tag2']),
-        ('tag1, tag2, ', ['tag1', 'tag2']), ('', [])])
+    @pytest.mark.parametrize('tags', tags_test)
     def test_add_with_tags(self, monkeypatch, tags):
         make_request_runned = False
         url = "http://test/url"

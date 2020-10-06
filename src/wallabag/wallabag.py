@@ -68,11 +68,12 @@ Would you like to create it now? [Y/n]
               help="Trim the titles to fit the length of the cli.")
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
+@click.option('-g', '--tags', help="Return entries that matches ALL tags.")
 @click.option('-q', '--quantity', type=click.INT,
               help="Set the number of entries to show.")
 @need_config
 @click.pass_context
-def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
+def list(ctx, starred, read, all, oldest, trim_output, count, tags, quantity):
     """
     List the entries on the wallabag account.
 
@@ -83,7 +84,7 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
         read = None
         starred = None
 
-    params = ListParams(quantity, read, starred, oldest, trim_output)
+    params = ListParams(quantity, read, starred, oldest, trim_output, tags)
     run_command(
             CountCommand(config, params) if count else
             ListCommand(config, params))
