@@ -21,8 +21,10 @@ from wallabag.configurator import (
         Validator,
     )
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-@click.group()
+
+@click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--config', help='Use custom configuration file')
 @click.pass_context
 def cli(ctx, config):
