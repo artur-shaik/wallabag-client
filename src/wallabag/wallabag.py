@@ -6,11 +6,13 @@ import subprocess
 from sys import exit
 
 import click
+from colorama import Fore
 
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
+from wallabag.commands.tags import TagsCommand
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -212,6 +214,21 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
     params.toggle_star = toggle_starred
     params.quiet = quiet
     run_command(UpdateCommand(ctx.obj, params))
+
+
+@cli.command(short_help="Retrieve and print all tags.")
+@need_config
+@click.pass_context
+def tags(ctx):
+    """
+    Retrieve and print all tags in format:
+
+    \b
+    {id}. {slug}
+    {id}. {slug}
+    {id}. {slug}
+    """
+    run_command(TagsCommand(ctx.obj))
 
 
 @cli.command()

@@ -64,6 +64,7 @@ class ApiMethod(Enum):
     UPDATE_ENTRY = "/api/entries/{0}"
     ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
+    GET_TAGS = "/api/tags"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
 
