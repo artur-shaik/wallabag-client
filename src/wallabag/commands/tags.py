@@ -2,18 +2,31 @@
 
 from wallabag.api.get_tags import GetTags
 from wallabag.api.api import ApiException
+from wallabag.api.get_tags_for_entry import GetTagsForEntry
 from wallabag.commands.command import Command
+
+
+class TagsCommandParams():
+    entry_id = None
+
+    def __init__(self, entry_id=None):
+        self.entry_id = entry_id
 
 
 class TagsCommand(Command):
 
-    def __init__(self, config):
+    def __init__(self, config, params=None):
         self.config = config
+        self.params = params if params else TagsCommandParams()
 
     def run(self):
         try:
-            response = GetTags(self.config).request().response
-            return True, self.__parse_tags(response)
+            if self.params.entry_id:
+                api = GetTagsForEntry(self.config, self.params.entry_id)
+            else:
+                api = GetTags(self.config)
+
+            return True, self.__parse_tags(api.request().response)
         except ApiException as ex:
             return False, str(ex)
 

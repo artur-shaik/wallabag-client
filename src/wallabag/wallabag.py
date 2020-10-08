@@ -12,7 +12,7 @@ from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
-from wallabag.commands.tags import TagsCommand
+from wallabag.commands.tags import TagsCommand, TagsCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -217,18 +217,24 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
 
 
 @cli.command(short_help="Retrieve and print all tags.")
+@click.option('-e', '--entry-id', help="ENTRY ID")
 @need_config
 @click.pass_context
-def tags(ctx):
+def tags(ctx, entry):
     """
-    Retrieve and print all tags in format:
+    Tag manipulation command.
+
+    By default retrieve and print tags in format:
 
     \b
     {id}. {slug}
     {id}. {slug}
     {id}. {slug}
+
+    If ENTRY_ID specified, make action related to this entry.
+    The ENTRY_ID can be found with `list` command.
     """
-    run_command(TagsCommand(ctx.obj))
+    run_command(TagsCommand(ctx.obj, TagsCommandParams(entry)))
 
 
 @cli.command()

@@ -65,6 +65,7 @@ class ApiMethod(Enum):
     ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
     GET_TAGS = "/api/tags"
+    GET_TAGS_FOR_ENTRY = "/api/entries/{0}/tags"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
 
