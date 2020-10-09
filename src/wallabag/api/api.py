@@ -64,6 +64,7 @@ class ApiMethod(Enum):
     UPDATE_ENTRY = "/api/entries/{0}"
     ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
+    ADD_TAGS_TO_ENTRY = "/api/entries/{0}/tags"
     GET_TAGS = "/api/tags"
     GET_TAGS_FOR_ENTRY = "/api/entries/{0}/tags"
     TOKEN = "/oauth/v2/token"
@@ -237,7 +238,7 @@ class Api(ABC):
             raise ValueException("ENTRY_ID is not a number")
 
         try:
-            entry_id = int(self.entry_id)
+            entry_id = int(entry_id)
         except ValueError:
             raise ValueException("ENTRY_ID is not a number")
 

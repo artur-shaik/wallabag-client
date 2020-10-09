@@ -12,7 +12,8 @@ from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
-from wallabag.commands.tags import TagsCommand, TagsCommandParams
+from wallabag.commands.tags import (
+        TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -218,9 +219,12 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
 
 @cli.command(short_help="Retrieve and print all tags.")
 @click.option('-e', '--entry-id', help="ENTRY ID")
+@click.option('-a', '--add', is_flag=True,
+              help="Add tags to entry. ENTRY_ID and TAGS should be specified.")
+@click.option('-t', '--tags', help="TAGS for subcommands.")
 @need_config
 @click.pass_context
-def tags(ctx, entry):
+def tags(ctx, entry_id, add, tags):
     """
     Tag manipulation command.
 
@@ -234,7 +238,10 @@ def tags(ctx, entry):
     If ENTRY_ID specified, make action related to this entry.
     The ENTRY_ID can be found with `list` command.
     """
-    run_command(TagsCommand(ctx.obj, TagsCommandParams(entry)))
+    params = TagsCommandParams(entry_id=entry_id, tags=tags)
+    if add:
+        params.command = TagsSubcommand.ADD
+    run_command(TagsCommand(ctx.obj, params))
 
 
 @cli.command()

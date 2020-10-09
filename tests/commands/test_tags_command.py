@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import pytest
+
+from tags import tags_test
 from wallabag.config import Configs
+from wallabag.api.add_tag_to_entry import AddTagToEntry
 from wallabag.api.api import Response
 from wallabag.api.api import RequestException
 from wallabag.api.get_tags import GetTags
 from wallabag.api.get_tags_for_entry import GetTagsForEntry
-from wallabag.commands.tags import TagsCommand, TagsCommandParams
+from wallabag.commands.tags import TagsCommand, TagsCommandParams, TagsSubcommand
 
 
 class TestTags():
@@ -75,3 +79,50 @@ class TestTags():
         params = TagsCommandParams(entry_id=10)
         result, msg = TagsCommand(self.config, params).run()
         assert not result
+
+    def test_add_tags_to_entry(self, monkeypatch):
+        tag_to_entry_runned = False
+
+        def request(self):
+            nonlocal tag_to_entry_runned
+            tag_to_entry_runned = True
+            return Response(200, """[]""")
+
+        monkeypatch.setattr(AddTagToEntry, 'request', request)
+
+        params = TagsCommandParams(entry_id=10, tags='tag1')
+        params.command = TagsSubcommand.ADD
+        result, msg = TagsCommand(self.config, params).run()
+        assert tag_to_entry_runned
+        assert result
+        assert msg == 'Tags successfully added'
+
+    @pytest.mark.parametrize('tags', tags_test)
+    def test_tags_param(self, monkeypatch, tags):
+        make_request_runned = False
+
+        def request(self):
+            nonlocal make_request_runned
+            make_request_runned = True
+            return Response(200, """[]""")
+
+        monkeypatch.setattr(AddTagToEntry, 'request', request)
+
+        params = TagsCommandParams(entry_id=10, tags=tags[0])
+        params.command = TagsSubcommand.ADD
+        result = TagsCommand(self.config, params).run()
+        if tags[0]:
+            assert make_request_runned
+            assert result[0]
+            assert result[1] == "Tags successfully added"
+        else:
+            assert not make_request_runned
+            assert not result[0]
+            assert result[1] == "tags value is empty"
+
+    def test_tags_to_entry_empty_id(self):
+        params = TagsCommandParams(tags='tags')
+        params.command = TagsSubcommand.ADD
+        result = TagsCommand(self.config, params).run()
+        assert not result[0]
+        assert result[1] == 'Entry id not specified'
