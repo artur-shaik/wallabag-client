@@ -14,6 +14,15 @@ class TagsSubcommand(Enum):
     LIST = auto()
     ADD = auto()
 
+    def list():
+        return [c.name for c in TagsSubcommand]
+
+    def get(name):
+        for command in TagsSubcommand:
+            if command.name == name.upper():
+                return command
+        return TagsSubcommand.LIST
+
 
 class TagsCommandParams(TagsParam):
     command = TagsSubcommand.LIST

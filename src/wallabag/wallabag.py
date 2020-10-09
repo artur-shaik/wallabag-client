@@ -218,17 +218,18 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
 
 
 @cli.command(short_help="Retrieve and print all tags.")
-@click.option('-e', '--entry-id', help="ENTRY ID")
-@click.option('-a', '--add', is_flag=True,
-              help="Add tags to entry. ENTRY_ID and TAGS should be specified.")
+@click.option('-c', '--command', default=TagsSubcommand.LIST.name,
+              type=click.Choice(TagsSubcommand.list(), case_sensitive=False),
+              help="Subcommand")
+@click.option('-e', '--entry-id', type=int, help="ENTRY ID")
 @click.option('-t', '--tags', help="TAGS for subcommands.")
 @need_config
 @click.pass_context
-def tags(ctx, entry_id, add, tags):
+def tags(ctx, command, entry_id, tags):
     """
     Tag manipulation command.
 
-    By default retrieve and print tags in format:
+    list (default) command: Retrieve and print tags in format:
 
     \b
     {id}. {slug}
@@ -237,10 +238,11 @@ def tags(ctx, entry_id, add, tags):
 
     If ENTRY_ID specified, make action related to this entry.
     The ENTRY_ID can be found with `list` command.
+
+    add command: Add tags to entry. ENTRY_ID and TAGS should be specified.
     """
     params = TagsCommandParams(entry_id=entry_id, tags=tags)
-    if add:
-        params.command = TagsSubcommand.ADD
+    params.command = TagsSubcommand.get(command)
     run_command(TagsCommand(ctx.obj, params))
 
 
