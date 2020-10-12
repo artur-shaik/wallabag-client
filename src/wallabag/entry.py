@@ -7,6 +7,7 @@ class Entry:
     url = ""
     read = False
     starred = False
+    tags = []
 
     def __init__(self, item):
         self.entry_id = item['id']
@@ -20,6 +21,7 @@ class Entry:
         self.url = item['url']
         self.read = item['is_archived'] == 1
         self.starred = item['is_starred'] == 1
+        self.tags = item['tags']
 
     def create_list(items):
         ret = list()

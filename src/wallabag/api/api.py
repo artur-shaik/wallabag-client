@@ -67,6 +67,7 @@ class ApiMethod(Enum):
     ADD_TAGS_TO_ENTRY = "/api/entries/{0}/tags"
     GET_TAGS = "/api/tags"
     GET_TAGS_FOR_ENTRY = "/api/entries/{0}/tags"
+    DELETE_TAG_FROM_ENTRY = "/api/entries/{0}/tags/{1}"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
 

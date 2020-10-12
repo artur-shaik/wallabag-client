@@ -240,6 +240,9 @@ def tags(ctx, command, entry_id, tags):
     The ENTRY_ID can be found with `list` command.
 
     add command: Add tags to entry. ENTRY_ID and TAGS should be specified.
+
+    remove command: Remove tag from entry. ENTRY_ID and TAGS should be
+    specified.
     """
     params = TagsCommandParams(entry_id=entry_id, tags=tags)
     params.command = TagsSubcommand.get(command)
