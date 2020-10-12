@@ -10,7 +10,9 @@ from wallabag.api.get_tags import GetTags
 from wallabag.api.api import ApiException
 from wallabag.api.delete_tag_from_entry import DeleteTagFromEntry
 from wallabag.api.get_entry import GetEntry
+from wallabag.api.get_list_entries import GetListEntries, Params as ListParams
 from wallabag.api.get_tags_for_entry import GetTagsForEntry
+from wallabag.api.delete_tags_by_label import DeleteTagsByLabel
 from wallabag.commands.command import Command
 from wallabag.commands.tags_param import TagsParam
 from wallabag.entry import Entry
@@ -44,11 +46,12 @@ class TagsCommandParams(TagsParam):
         self.entry_id = entry_id
         self.tags = tags
 
-    def validate(self):
-        result, msg = self._validate_tags()
-        if not result:
-            raise ValidateError(msg)
-        elif not self.entry_id:
+    def validate(self, tags=True, entry_id=True):
+        if tags:
+            result, msg = self._validate_tags()
+            if not result:
+                raise ValidateError(msg)
+        if entry_id and not self.entry_id:
             raise ValidateError('Entry id not specified')
 
 
@@ -92,32 +95,61 @@ class TagsCommand(Command):
 
     def __subcommand_remove(self):
         try:
-            self.params.validate()
-            api = GetEntry(self.config, self.params.entry_id)
-            entry = Entry(api.request().response)
-            tag = list(filter(
-                    lambda t: t['slug'] == self.params.tags,
-                    entry.tags))
-            if not tag:
-                return False, (
-                        f'Tag "{self.params.tags}" not found '
-                        f'in entry:\n\n\t{entry.title}\n')
-            tag = tag[0]
-
-            confirm_msg = (
-                    f'{Back.RED}You are going to remove tag '
-                    f'{Fore.BLUE}{self.params.tags}{Fore.RESET} from entry:'
-                    f'{Back.RESET}'
-                    f'\n\n\t{entry.title}\n\n'
-                    'Continue?')
-            if not click.confirm(confirm_msg):
-                return True, 'Cancelling'
-
-            DeleteTagFromEntry(
-                    self.config, self.params.entry_id,
-                    tag['id']).request()
+            if self.params.entry_id:
+                return self.__remove_from_entry()
+            else:
+                return self.__remove_by_tag_name()
         except (ValidateError, ApiException) as ex:
             return False, str(ex)
+        return True, None
+
+    def __remove_by_tag_name(self):
+        self.params.validate(entry_id=False)
+        entries = list()
+        for tag in self.params.tags.split(','):
+            api = GetListEntries(self.config, {
+                ListParams.TAGS: tag,
+                ListParams.COUNT: 100
+            })
+            entries.extend(Entry.create_list(
+                    api.request().response['_embedded']["items"]))
+        titles = "\n\t".join([x.title for x in entries])
+        confirm_msg = (
+                f'{Back.RED}You are going to remove tag '
+                f'{Fore.BLUE}{self.params.tags}{Fore.RESET} '
+                f'from this entries:{Back.RESET}\n\n\t{titles}'
+                '\n\nContinue?')
+        if not click.confirm(confirm_msg):
+            return True, 'Cancelling'
+
+        DeleteTagsByLabel(self.config, self.params.tags).request()
+        return True, None
+
+    def __remove_from_entry(self):
+        self.params.validate()
+        api = GetEntry(self.config, self.params.entry_id)
+        entry = Entry(api.request().response)
+        tag = list(filter(
+                lambda t: t['slug'] == self.params.tags,
+                entry.tags))
+        if not tag:
+            return False, (
+                    f'Tag "{self.params.tags}" not found '
+                    f'in entry:\n\n\t{entry.title}\n')
+        tag = tag[0]
+
+        confirm_msg = (
+                f'{Back.RED}You are going to remove tag '
+                f'{Fore.BLUE}{self.params.tags}{Fore.RESET} from entry:'
+                f'{Back.RESET}'
+                f'\n\n\t{entry.title}\n\n'
+                'Continue?')
+        if not click.confirm(confirm_msg):
+            return True, 'Cancelling'
+
+        DeleteTagFromEntry(
+                self.config, self.params.entry_id,
+                tag['id']).request()
         return True, None
 
     def __parse_tags(self, response):

@@ -24,7 +24,4 @@ class Entry:
         self.tags = item['tags']
 
     def create_list(items):
-        ret = list()
-        for item in items:
-            ret.append(Entry(item))
-        return ret
+        return [Entry(i) for i in items]

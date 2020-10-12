@@ -10,8 +10,10 @@ from wallabag.config import Configs
 from wallabag.api.add_tag_to_entry import AddTagToEntry
 from wallabag.api.api import Response
 from wallabag.api.api import RequestException
+from wallabag.api.delete_tags_by_label import DeleteTagsByLabel
 from wallabag.api.delete_tag_from_entry import DeleteTagFromEntry
 from wallabag.api.get_entry import GetEntry
+from wallabag.api.get_list_entries import GetListEntries
 from wallabag.api.get_tags import GetTags
 from wallabag.api.get_tags_for_entry import GetTagsForEntry
 from wallabag.commands.tags import (
@@ -182,6 +184,48 @@ class TestTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = TagsCommandParams(tags='tag', entry_id=1)
+        params.command = TagsSubcommand.REMOVE
+        result = TagsCommand(self.config, params).run()
+        assert confirm_runned
+        assert result[0]
+
+    @pytest.mark.parametrize('current_tag', ['tag', 'tag2'])
+    def test_remove_tag_by_label(self, monkeypatch, current_tag):
+        confirm_runned = False
+
+        def success(self):
+            return Response(200, None)
+
+        def getlist_request(self):
+            return Response(
+                    200, (
+                        '{"_embedded": {"items": [{"id": 1, "title": "title",'
+                        '"content": "<h1>head</h1>content", "url": "url",'
+                        '"is_archived": 0, "is_starred": 1,'
+                        '"tags": ['
+                        '{"id":7,"label":"tag","slug":"tag"},'
+                        '{"id":13,"label":"tag2","slug":"tag2"}]},'
+                        '{"id": 2, "title": "title 2",'
+                        '"content": "<h1>head</h1>content", "url": "url",'
+                        '"is_archived": 0, "is_starred": 1,'
+                        '"tags": ['
+                        '{"id":7,"label":"tag","slug":"tag"},'
+                        '{"id":13,"label":"tag2","slug":"tag2"}]}]}}'))
+
+        def confirm(msg):
+            nonlocal confirm_runned
+            confirm_runned = True
+            assert msg == (
+                    f'{Back.RED}You are going to remove tag '
+                    f'{Fore.BLUE}{current_tag}{Fore.RESET} from this entries:'
+                    f'{Back.RESET}\n\n\ttitle\n\ttitle 2\n\nContinue?')
+            return True
+
+        monkeypatch.setattr(GetListEntries, 'request', getlist_request)
+        monkeypatch.setattr(DeleteTagsByLabel, 'request', success)
+        monkeypatch.setattr(click, 'confirm', confirm)
+
+        params = TagsCommandParams(tags=current_tag)
         params.command = TagsSubcommand.REMOVE
         result = TagsCommand(self.config, params).run()
         assert confirm_runned
