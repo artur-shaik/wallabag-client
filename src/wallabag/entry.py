@@ -21,7 +21,8 @@ class Entry:
         self.url = item['url']
         self.read = item['is_archived'] == 1
         self.starred = item['is_starred'] == 1
-        self.tags = item['tags']
+        if 'tags' in item:
+            self.tags = item['tags']
 
     def create_list(items):
         return [Entry(i) for i in items]

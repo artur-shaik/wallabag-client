@@ -23,6 +23,7 @@ from wallabag.configurator import (
         SecretOption,
         Validator,
     )
+from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
 
 
 @click.group()
@@ -189,6 +190,24 @@ def delete(ctx, entry_id, force, quiet):
     """
     params = DeleteCommandParams(entry_id, force, quiet)
     run_command(DeleteCommand(ctx.obj, params))
+
+
+@cli.command()
+@click.option('-f', '--force', default=False, is_flag=True,
+              help="Do not ask before deletion.")
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
+@click.argument('tags', required=True)
+@need_config
+@click.pass_context
+def delete_by_tags(ctx, tags, force, quiet):
+    """
+    Delete entries from wallabag by tags.
+
+    The TAGS can be found with `tags -c list` command.
+    """
+    params = DeleteByTagsParams(tags, force, quiet)
+    run_command(DeleteByTags(ctx.obj, params), quiet=quiet)
 
 
 @cli.command()

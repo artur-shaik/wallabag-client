@@ -1,5 +1,6 @@
 import os
 import tempfile
+import pathlib
 
 import pytest
 
@@ -50,7 +51,7 @@ class TestConfigs():
         assert expected == str(actual)
 
     def test_get_path_custom(self):
-        expected = "custom/directory"
+        expected = pathlib.PurePath("custom/directory")
 
         assert expected == self.configs.get_path(expected)
 
