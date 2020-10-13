@@ -10,6 +10,7 @@ from wallabag.config import Configs
 from wallabag.api.add_tag_to_entry import AddTagToEntry
 from wallabag.api.api import Response
 from wallabag.api.api import RequestException
+from wallabag.api.delete_tag_by_id import DeleteTagsById
 from wallabag.api.delete_tags_by_label import DeleteTagsByLabel
 from wallabag.api.delete_tag_from_entry import DeleteTagFromEntry
 from wallabag.api.get_entry import GetEntry
@@ -226,6 +227,31 @@ class TestTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = TagsCommandParams(tags=current_tag)
+        params.command = TagsSubcommand.REMOVE
+        result = TagsCommand(self.config, params).run()
+        assert confirm_runned
+        assert result[0]
+
+    @pytest.mark.parametrize('tag_id', [1, '2'])
+    def test_remove_tag_by_id(self, monkeypatch, tag_id):
+        confirm_runned = False
+
+        def success(self):
+            return Response(200, None)
+
+        def confirm(msg):
+            nonlocal confirm_runned
+            confirm_runned = True
+            assert msg == (
+                    f'{Back.RED}You are going to remove tag with id: '
+                    f'{Fore.BLUE}{int(tag_id)}{Fore.RESET}{Back.RESET}'
+                    '\n\nContinue?')
+            return True
+
+        monkeypatch.setattr(DeleteTagsById, 'request', success)
+        monkeypatch.setattr(click, 'confirm', confirm)
+
+        params = TagsCommandParams(tag_id=tag_id)
         params.command = TagsSubcommand.REMOVE
         result = TagsCommand(self.config, params).run()
         assert confirm_runned

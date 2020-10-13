@@ -12,6 +12,7 @@ from wallabag.api.delete_tag_from_entry import DeleteTagFromEntry
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.get_list_entries import GetListEntries, Params as ListParams
 from wallabag.api.get_tags_for_entry import GetTagsForEntry
+from wallabag.api.delete_tag_by_id import DeleteTagsById
 from wallabag.api.delete_tags_by_label import DeleteTagsByLabel
 from wallabag.commands.command import Command
 from wallabag.commands.tags_param import TagsParam
@@ -40,19 +41,29 @@ class ValidateError(Exception):
 class TagsCommandParams(TagsParam):
     command = TagsSubcommand.LIST
     entry_id = None
+    tag_id = None
     tags = None
 
-    def __init__(self, entry_id=None, tags=None):
+    def __init__(self, entry_id=None, tags=None, tag_id=None):
         self.entry_id = entry_id
         self.tags = tags
+        self.tag_id = tag_id
 
-    def validate(self, tags=True, entry_id=True):
+    def validate(self, tags=False, entry_id=False, tag_id=False):
         if tags:
             result, msg = self._validate_tags()
             if not result:
                 raise ValidateError(msg)
         if entry_id and not self.entry_id:
             raise ValidateError('Entry id not specified')
+        if tag_id:
+            if self.tag_id:
+                try:
+                    self.tag_id = int(self.tag_id)
+                except ValueError:
+                    raise ValidateError('Tag id is not integer')
+            else:
+                raise ValidateError('Tag id is not set')
 
 
 class TagsCommand(Command):
@@ -83,7 +94,7 @@ class TagsCommand(Command):
 
     def __subcommand_add(self):
         try:
-            self.params.validate()
+            self.params.validate(entry_id=True, tags=True)
             AddTagToEntry(self.config, {
                 Params.ENTRY_ID: self.params.entry_id,
                 Params.TAGS: self.params.tags
@@ -97,14 +108,28 @@ class TagsCommand(Command):
         try:
             if self.params.entry_id:
                 return self.__remove_from_entry()
+            elif self.params.tag_id:
+                return self.__remove_by_tag_id()
             else:
                 return self.__remove_by_tag_name()
         except (ValidateError, ApiException) as ex:
             return False, str(ex)
         return True, None
 
+    def __remove_by_tag_id(self):
+        self.params.validate(tag_id=True)
+        confirm_msg = (
+                f'{Back.RED}You are going to remove tag with id: '
+                f'{Fore.BLUE}{self.params.tag_id}{Fore.RESET}{Back.RESET}'
+                '\n\nContinue?')
+        if not click.confirm(confirm_msg):
+            return True, 'Cancelling'
+
+        DeleteTagsById(self.config, self.params.tag_id).request()
+        return True, None
+
     def __remove_by_tag_name(self):
-        self.params.validate(entry_id=False)
+        self.params.validate(tags=True)
         entries = list()
         for tag in self.params.tags.split(','):
             api = GetListEntries(self.config, {
@@ -126,7 +151,7 @@ class TagsCommand(Command):
         return True, None
 
     def __remove_from_entry(self):
-        self.params.validate()
+        self.params.validate(entry_id=True, tags=True)
         api = GetEntry(self.config, self.params.entry_id)
         entry = Entry(api.request().response)
         tag = list(filter(

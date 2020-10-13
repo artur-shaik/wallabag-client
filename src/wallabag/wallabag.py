@@ -223,9 +223,11 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
               help="Subcommand")
 @click.option('-e', '--entry-id', type=int, help="ENTRY ID")
 @click.option('-t', '--tags', help="TAGS for subcommands.")
+@click.option('--tag-id', type=int,
+              help="TAG_ID - used for removing tag by ID")
 @need_config
 @click.pass_context
-def tags(ctx, command, entry_id, tags):
+def tags(ctx, command, entry_id, tags, tag_id):
     """
     Tag manipulation command.
 
@@ -241,10 +243,10 @@ def tags(ctx, command, entry_id, tags):
 
     add command: Add tags to entry. ENTRY_ID and TAGS should be specified.
 
-    remove command: Remove tag from entry. ENTRY_ID and TAGS should be
-    specified.
+    remove command: Remove tag from entry. (ENTRY_ID and TAGS) or TAG_ID
+    should be specified.
     """
-    params = TagsCommandParams(entry_id=entry_id, tags=tags)
+    params = TagsCommandParams(entry_id=entry_id, tags=tags, tag_id=tag_id)
     params.command = TagsSubcommand.get(command)
     run_command(TagsCommand(ctx.obj, params))
 
