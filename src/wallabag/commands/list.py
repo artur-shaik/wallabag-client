@@ -7,23 +7,32 @@ import sys
 from wallabag.api.api import ApiException
 from wallabag.api.get_list_entries import GetListEntries, Params
 from wallabag.commands.command import Command
+from wallabag.commands.tags_param import TagsParam
 from wallabag.entry import Entry
 
 
-class ListParams():
+class ListParams(TagsParam):
     quantity = None
     filter_read = None
     filter_starred = None
     oldest = False
     trim = True
+    tags = None
 
     def __init__(self, quantity=None, filter_read=None,
-                 filter_starred=None, oldest=None, trim=None):
+                 filter_starred=None, oldest=None, trim=None, tags=None):
         self.quantity = quantity
         self.filter_read = filter_read
         self.filter_starred = filter_starred
         self.oldest = oldest
         self.trim = trim
+        self.tags = tags
+
+    def validate(self):
+        result, msg = self._validate_tags()
+        if not result:
+            return False, msg
+        return True, None
 
 
 class ListCommand(Command):
@@ -33,12 +42,16 @@ class ListCommand(Command):
         self.params = params or ListParams()
 
     def run(self):
+        result, msg = self.params.validate()
+        if not result:
+            return False, msg
         try:
             api = GetListEntries(self.config, {
                 Params.COUNT: self.__get_quantity(),
                 Params.FILTER_READ: self.params.filter_read,
                 Params.FILTER_STARRED: self.params.filter_starred,
-                Params.OLDEST: self.params.oldest
+                Params.OLDEST: self.params.oldest,
+                Params.TAGS: self.params.tags
             })
             entries = Entry.create_list(
                     api.request().response['_embedded']["items"])

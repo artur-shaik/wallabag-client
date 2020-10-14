@@ -31,17 +31,16 @@ class TestUpdateCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = UpdateCommandParams(1)
-        params.toggle_read = True
-        result, output = UpdateCommand(self.config, params).run()
+        params = UpdateCommandParams(toggle_read=True)
+        result, output = UpdateCommand(self.config, 1, params).run()
         assert not result
         assert output == "Error: 404: API was not found."
 
     def test_no_parameters_given(self):
         result, output = UpdateCommand(
-                self.config, UpdateCommandParams(1)).run()
+                self.config, 1, UpdateCommandParams()).run()
         assert not result
-        assert output == 'Error: No parameter given.'
+        assert output == 'No parameter given'
 
     @pytest.mark.parametrize('values', [
         ((0, 0), (1, 0), (True, False)),
@@ -72,9 +71,8 @@ class TestUpdateCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
         monkeypatch.setattr(UpdateEntry, '_make_request', _make_request)
 
-        params = UpdateCommandParams(1)
-        params.toggle_read = values[2][0]
-        params.toggle_star = values[2][1]
-        result, output = UpdateCommand(self.config, params).run()
+        params = UpdateCommandParams(
+                toggle_read=values[2][0], toggle_star=values[2][1])
+        result, output = UpdateCommand(self.config, 1, params).run()
         assert result
         assert make_request_runned

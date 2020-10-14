@@ -72,7 +72,11 @@ class TestGetEntriesList():
         ((
             Params.FILTER_STARRED,
             GetListEntries.ApiParams.STARRED
-            ), 'foo', None)
+            ), 'foo', None),
+        ((
+            Params.TAGS,
+            GetListEntries.ApiParams.TAGS
+            ), 'tag1,tag2', 'tag1,tag2')
         ])
     def test_bool_params(self, values):
         api = GetListEntries(self.config, {
