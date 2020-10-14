@@ -18,3 +18,7 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 - Mark existing entries as starred;
 - Change the title of existing entries;
 - Tags support.
+
+## Installation
+
+`sudo pip3 install wallabag-client`
