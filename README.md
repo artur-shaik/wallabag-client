@@ -10,10 +10,11 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 
 ## Features
 
-- List entries (filterable)
-- Show the content of an entry
-- Add new entries
-- Delete entries
-- Mark existing entries as read
-- Mark existing entries as starred
-- Change the title of existing entries
+- List entries (filterable);
+- Show the content of an entry;
+- Add new entries;
+- Delete entries;
+- Mark existing entries as read;
+- Mark existing entries as starred;
+- Change the title of existing entries;
+- Tags support.
