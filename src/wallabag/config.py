@@ -57,7 +57,7 @@ class Configs():
         if custom_path:
             self.custom_path = custom_path
         if self.custom_path:
-            return self.custom_path
+            return PurePath(self.custom_path)
         return PurePath(CONFIG_DIRECTORY,
                         CONFIG_WALLABAG_DIR,
                         CONFIG_FILENAME)
@@ -71,7 +71,7 @@ class Configs():
 
     def get(self, section, name, fallback=None):
         value = self.config.get(section, name, fallback=fallback)
-        if (section, name) in Configs.ENCRYPT_VALUES:
+        if value and (section, name) in Configs.ENCRYPT_VALUES:
             value = self.__decrypt(value)
         return value
 

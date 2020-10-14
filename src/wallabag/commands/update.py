@@ -8,53 +8,67 @@ from wallabag.entry import Entry
 
 
 class UpdateCommandParams():
-    entry_id = None
-    toggle_read = False
-    toggle_star = False
+    toggle_read = None
+    toggle_star = None
     new_title = None
+    set_read_state = None
+    set_star_state = None
+    force = False
     quiet = False
 
-    def __init__(self, entry_id):
-        self.entry_id = entry_id
+    def __init__(self, toggle_read=None, toggle_star=None, new_title=None):
+        self.toggle_read = toggle_read
+        self.toggle_star = toggle_star
+        self.new_title = new_title
 
-    def validate(self):
-        if not self.new_title and not self.toggle_read\
-                and not self.toggle_star:
-            return False
-        return True
+    def validate(self, check_toggle_options=True):
+        if self.set_star_state and self.toggle_star:
+            self.toggle_star = None
+        if self.set_read_state and self.toggle_read:
+            self.toggle_read = None
+
+        params = [
+                not self.new_title,
+                self.set_read_state is None,
+                self.set_star_state is None
+                ]
+        if check_toggle_options:
+            params.extend([not self.toggle_read, not self.toggle_star])
+
+        for p in params:
+            if not p:
+                return True
+        raise ValueError('No parameter given')
 
 
 class UpdateCommand(Command):
 
-    def __init__(self, config, params):
+    def __init__(self, config, entry_id, params):
         self.config = config
+        self.entry_id = entry_id
         self.params = params or UpdateCommandParams()
 
     def run(self):
         params = self.params
-        if not params.validate():
-            return False, "Error: No parameter given."
 
-        read_value = None
-        star_value = None
+        read_value = params.set_read_state
+        star_value = params.set_star_state
 
         try:
-            request = GetEntry(self.config, params.entry_id).request()
+            params.validate()
+            request = GetEntry(self.config, self.entry_id).request()
             entry = Entry(request.response)
-            if params.toggle_read:
+            if params.toggle_read is not None and params.toggle_read:
                 read_value = not entry.read
-            if params.toggle_star:
+            if params.toggle_star is not None and params.toggle_star:
                 star_value = not entry.starred
-        except ApiException as ex:
-            return False, str(ex)
 
-        try:
-            request = UpdateEntry(self.config, params.entry_id, {
+            request = UpdateEntry(self.config, self.entry_id, {
                 Params.TITLE: params.new_title,
                 Params.STAR: star_value,
                 Params.READ: read_value
             }).request()
             if not params.quiet:
                 return True, "Entry successfully updated."
-        except ApiException as ex:
+        except (ValueError, ApiException) as ex:
             return False, str(ex)

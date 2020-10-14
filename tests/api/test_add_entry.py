@@ -73,3 +73,13 @@ class TestAddEntry():
         assert AddEntry.ApiParams.TITLE.value not in data
         assert data[AddEntry.ApiParams.ARCHIVE.value] == 1
         assert 'https://url' == data[AddEntry.ApiParams.URL.value]
+
+    def test_add_with_tags(self, monkeypatch):
+        monkeypatch.setattr(AddEntry, '_is_valid_url', _is_valid_url)
+
+        api = AddEntry(self.config, "url", {
+            Params.TAGS: "tag1,tag2"
+        })
+
+        data = api._get_data()
+        assert AddEntry.ApiParams.TAGS.value in data

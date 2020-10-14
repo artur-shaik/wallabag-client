@@ -6,11 +6,14 @@ import subprocess
 from sys import exit
 
 import click
+from colorama import Fore
 
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
+from wallabag.commands.tags import (
+        TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -20,6 +23,8 @@ from wallabag.configurator import (
         SecretOption,
         Validator,
     )
+from wallabag.commands.update_by_tags import UpdateByTagsCommand
+from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -70,11 +75,12 @@ Would you like to create it now? [Y/n]
               help="Trim the titles to fit the length of the cli.")
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
+@click.option('-g', '--tags', help="Return entries that matches ALL tags.")
 @click.option('-q', '--quantity', type=click.INT,
               help="Set the number of entries to show.")
 @need_config
 @click.pass_context
-def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
+def list(ctx, starred, read, all, oldest, trim_output, count, tags, quantity):
     """
     List the entries on the wallabag account.
 
@@ -85,7 +91,7 @@ def list(ctx, starred, read, all, oldest, trim_output, count, quantity):
         read = None
         starred = None
 
-    params = ListParams(quantity, read, starred, oldest, trim_output)
+    params = ListParams(quantity, read, starred, oldest, trim_output, tags)
     run_command(
             CountCommand(config, params) if count else
             ListCommand(config, params))
@@ -159,14 +165,15 @@ def star(ctx, entry_id, quiet):
               help="Mark as read.")
 @click.option('-s', '--starred', default=False, is_flag=True,
               help="Mark as starred.")
+@click.option('-a', '--tags', help="Comma-separated list of tags")
 @click.option('-q', '--quiet', default=False, is_flag=True,
               help="Hide the output if no error occurs.")
 @click.argument('url', required=True)
 @need_config
 @click.pass_context
-def add(ctx, url, title, read, starred, quiet):
+def add(ctx, url, title, read, starred, tags, quiet):
     """Add a new entry to wallabag."""
-    params = AddCommandParams(url, title, read, starred)
+    params = AddCommandParams(url, title, read, starred, tags)
     run_command(AddCommand(ctx.obj, params), quiet)
 
 
@@ -189,29 +196,116 @@ def delete(ctx, entry_id, force, quiet):
 
 
 @cli.command()
+@click.option('-f', '--force', default=False, is_flag=True,
+              help="Do not ask before deletion.")
+@click.option('-q', '--quiet', default=False, is_flag=True,
+              help="Hide the output if no error occurs.")
+@click.argument('tags', required=True)
+@need_config
+@click.pass_context
+def delete_by_tags(ctx, tags, force, quiet):
+    """
+    Delete entries from wallabag by tags.
+
+    The TAGS can be found with `tags -c list` command.
+    """
+    params = DeleteByTagsParams(tags, force, quiet)
+    run_command(DeleteByTags(ctx.obj, params), quiet=quiet)
+
+
+@cli.command()
 @click.option('-t', '--title', default="", help="Change the title.")
 @click.option('-r', '--toggle-read', is_flag=True,
               help="Toggle the read status")
 @click.option('-s', '--toggle-starred', is_flag=True,
               help="Toggle the starred status")
+@click.option('--read/--unread', default=None, help="Set the read status")
+@click.option('--starred/--unstarred', default=None,
+              help="Set the starred status")
 @click.option('-q', '--quiet', is_flag=True,
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
+def update(ctx, entry_id, title, toggle_read, toggle_starred,
+           read, starred, quiet):
     """
         Toggle the read or starred status or change the title
         of an existing entry.
 
         The ENTRY_ID can be found with `list` command.
     """
-    params = UpdateCommandParams(entry_id)
+    params = UpdateCommandParams()
     params.new_title = title
     params.toggle_read = toggle_read
     params.toggle_star = toggle_starred
+    params.set_read_state = read
+    params.set_star_state = starred
     params.quiet = quiet
-    run_command(UpdateCommand(ctx.obj, params))
+    run_command(
+            UpdateCommand(ctx.obj, entry_id, params), quiet=quiet)
+
+
+@cli.command()
+@click.option('-r/-n', '--read/--unread', default=None,
+              help="Set the read status")
+@click.option('-s/-u', '--starred/--unstarred', default=None,
+              help="Set the starred status")
+@click.option('-f', '--force', is_flag=True,
+              help="Do not ask before update.")
+@click.option('-q', '--quiet', is_flag=True,
+              help="Hide the output if no error occurs.")
+@click.argument('tags', required=True)
+@need_config
+@click.pass_context
+def update_by_tags(ctx, tags, read, starred, force, quiet):
+    """
+        Set the read or starred status of an existing entries
+        selected by tags.
+
+        The TAGS can be found with `tags -c list` command.
+    """
+    params = UpdateCommandParams()
+    params.set_read_state = read
+    params.set_star_state = starred
+    params.force = force
+    params.quiet = quiet
+    run_command(
+            UpdateByTagsCommand(ctx.obj, tags, params), quiet=quiet)
+
+
+@cli.command(short_help="Retrieve and print all tags.")
+@click.option('-c', '--command', default=TagsSubcommand.LIST.name,
+              type=click.Choice(TagsSubcommand.list(), case_sensitive=False),
+              help="Subcommand")
+@click.option('-e', '--entry-id', type=int, help="ENTRY ID")
+@click.option('-t', '--tags', help="TAGS for subcommands.")
+@click.option('--tag-id', type=int,
+              help="TAG_ID - used for removing tag by ID")
+@need_config
+@click.pass_context
+def tags(ctx, command, entry_id, tags, tag_id):
+    """
+    Tag manipulation command.
+
+    list (default) command: Retrieve and print tags in format:
+
+    \b
+    {id}. {slug}
+    {id}. {slug}
+    {id}. {slug}
+
+    If ENTRY_ID specified, make action related to this entry.
+    The ENTRY_ID can be found with `list` command.
+
+    add command: Add tags to entry. ENTRY_ID and TAGS should be specified.
+
+    remove command: Remove tag from entry. (ENTRY_ID and TAGS) or TAG_ID
+    should be specified.
+    """
+    params = TagsCommandParams(entry_id=entry_id, tags=tags, tag_id=tag_id)
+    params.command = TagsSubcommand.get(command)
+    run_command(TagsCommand(ctx.obj, params))
 
 
 @cli.command()
