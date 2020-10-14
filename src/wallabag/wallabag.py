@@ -23,6 +23,7 @@ from wallabag.configurator import (
         SecretOption,
         Validator,
     )
+from wallabag.commands.update_by_tags import UpdateByTagsCommand
 from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
 
 
@@ -228,12 +229,41 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
 
         The ENTRY_ID can be found with `list` command.
     """
-    params = UpdateCommandParams(entry_id)
+    params = UpdateCommandParams()
     params.new_title = title
     params.toggle_read = toggle_read
     params.toggle_star = toggle_starred
     params.quiet = quiet
-    run_command(UpdateCommand(ctx.obj, params))
+    run_command(
+            UpdateCommand(ctx.obj, entry_id, params), quiet=quiet)
+
+
+@cli.command()
+@click.option('-r/-n', '--read/--unread', default=None,
+              help="Set the read status")
+@click.option('-s/-u', '--starred/--unstarred', default=None,
+              help="Set the starred status")
+@click.option('-f', '--force', is_flag=True,
+              help="Do not ask before update.")
+@click.option('-q', '--quiet', is_flag=True,
+              help="Hide the output if no error occurs.")
+@click.argument('tags', required=True)
+@need_config
+@click.pass_context
+def update_by_tags(ctx, tags, read, starred, force, quiet):
+    """
+        Set the read or starred status of an existing entries
+        selected by tags.
+
+        The TAGS can be found with `tags -c list` command.
+    """
+    params = UpdateCommandParams()
+    params.set_read_state = read
+    params.set_star_state = starred
+    params.force = force
+    params.quiet = quiet
+    run_command(
+            UpdateByTagsCommand(ctx.obj, tags, params), quiet=quiet)
 
 
 @cli.command(short_help="Retrieve and print all tags.")
