@@ -219,12 +219,16 @@ def delete_by_tags(ctx, tags, force, quiet):
               help="Toggle the read status")
 @click.option('-s', '--toggle-starred', is_flag=True,
               help="Toggle the starred status")
+@click.option('--read/--unread', default=None, help="Set the read status")
+@click.option('--starred/--unstarred', default=None,
+              help="Set the starred status")
 @click.option('-q', '--quiet', is_flag=True,
               help="Hide the output if no error occurs.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
+def update(ctx, entry_id, title, toggle_read, toggle_starred,
+           read, starred, quiet):
     """
         Toggle the read or starred status or change the title
         of an existing entry.
@@ -235,6 +239,8 @@ def update(ctx, entry_id, title, toggle_read, toggle_starred, quiet):
     params.new_title = title
     params.toggle_read = toggle_read
     params.toggle_star = toggle_starred
+    params.set_read_state = read
+    params.set_star_state = starred
     params.quiet = quiet
     run_command(
             UpdateCommand(ctx.obj, entry_id, params), quiet=quiet)

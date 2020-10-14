@@ -51,16 +51,16 @@ class UpdateCommand(Command):
     def run(self):
         params = self.params
 
-        read_value = None
-        star_value = None
+        read_value = params.set_read_state
+        star_value = params.set_star_state
 
         try:
             params.validate()
             request = GetEntry(self.config, self.entry_id).request()
             entry = Entry(request.response)
-            if params.toggle_read:
+            if params.toggle_read is not None and params.toggle_read:
                 read_value = not entry.read
-            if params.toggle_star:
+            if params.toggle_star is not None and params.toggle_star:
                 star_value = not entry.starred
 
             request = UpdateEntry(self.config, self.entry_id, {

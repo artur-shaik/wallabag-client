@@ -24,7 +24,7 @@ class UpdateByTagsCommand(Command):
         params = self.params
 
         try:
-            params.validate()
+            params.validate(check_toggle_options=False)
             api = GetListEntries(self.config, {
                 ListParams.TAGS: self.tags,
                 ListParams.COUNT: 100
