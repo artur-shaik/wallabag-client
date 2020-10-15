@@ -31,7 +31,15 @@ class OAuthException(ApiException):
 
 
 class RequestException(ApiException):
-    pass
+
+    def __init__(self, text=None, description=None, response=None):
+        if response:
+            ApiException.__init__(
+                    self, response.error_text, response.error_description)
+        else:
+            ApiException.__init__(
+                    self, text, description)
+        self.response = response
 
 
 class ValueException(ApiException):
@@ -289,6 +297,5 @@ class Api(ABC):
             raise RequestException(
                     'Connection error', error)
         if response.has_error():
-            raise RequestException(
-                    response.error_text, response.error_description)
+            raise RequestException(response=response)
         return response

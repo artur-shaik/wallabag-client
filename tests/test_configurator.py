@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from wallabag.api.api import Api, Response
+from wallabag.api.api import Api, Response, RequestException
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.config import Configs, Options, Sections
@@ -23,7 +23,7 @@ def api_success(self):
 
 
 def api_failure(self):
-    return Response(403, None)
+    raise RequestException(response=Response(403, None))
 
 
 class TestConfigurator():
@@ -136,7 +136,8 @@ class TestConfigurator():
 
     def test_validator_oauth_failure_bad_request_grant(self, monkeypatch):
         def api_failure_400_grant(self):
-            return Response(400, '{"error": "invalid_grant"}')
+            raise RequestException(
+                    response=Response(400, '{"error": "invalid_grant"}'))
 
         monkeypatch.setattr(ApiToken, 'request', api_failure_400_grant)
 
@@ -149,7 +150,8 @@ class TestConfigurator():
 
     def test_validator_oauth_failure_bad_request_client(self, monkeypatch):
         def api_failure_400_client(self):
-            return Response(400, '{"error": "invalid_client"}')
+            raise RequestException(
+                    response=Response(400, '{"error": "invalid_client"}'))
 
         monkeypatch.setattr(ApiToken, 'request', api_failure_400_client)
 
