@@ -6,7 +6,8 @@ from abc import ABC, abstractmethod
 
 import click
 
-from wallabag.api.api import Api, Error, ApiException, MINIMUM_API_VERSION
+from wallabag.api.api import (
+        Api, Error, ApiException, MINIMUM_API_VERSION, RequestException)
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.config import Options, Sections
@@ -39,28 +40,33 @@ class Validator():
         }
 
     def check_oauth(self):
-        response = ApiToken(self.config).request()
-        if response.has_error():
-            if response.error == Error.HTTP_BAD_REQUEST:
+        try:
+            ApiToken(self.config).request()
+        except RequestException as error:
+            response = error.response
+            if response and response.error == Error.HTTP_BAD_REQUEST:
                 click.echo(response.error_description)
                 return self.response[response.error_text]
-            return (False, response.error_description, None)
+            return (False, error.error_description, None)
         return (True, "The configuration is ok.", None)
 
     def check(self):
         if not self.config.is_valid():
             return (False, "The config is missing or incomplete.")
 
-        response = ApiVersion(self.config).request()
-        if response.has_error():
+        try:
+            response = ApiVersion(self.config).request()
+        except RequestException:
             return (False, "The server or the API is not reachable.")
 
         if not Api.is_minimum_version(response):
             return (False,
                     "The version of the wallabag instance is too old.")
 
-        if ApiToken(self.config).request().has_error():
-            return (False, response.error_description)
+        try:
+            ApiToken(self.config).request()
+        except RequestException as error:
+            return (False, error.error_description)
 
         return (True, "The config is suitable.")
 
@@ -136,9 +142,10 @@ class ServerurlOption(ConfigOption):
                 else value
 
     def __check_api_verion(self, value):
-        response = ApiVersion(self.config, value).request()
-        if response.has_error():
-            raise ValueError(response.error_text)
+        try:
+            response = ApiVersion(self.config, value).request()
+        except RequestException as err:
+            raise ValueError(str(err))
 
         if not Api.is_minimum_version(response):
             raise ValueError(
