@@ -2,11 +2,15 @@
 
 import pytest
 
-from wallabag.api.api import Response, RequestException
+from wallabag.api.api import Api, Response, RequestException
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.update_entry import UpdateEntry
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
+
+
+def get_authorization_header(self):
+    return {'Authorization': "Bearer a1b2"}
 
 
 class TestUpdateCommand():
@@ -76,6 +80,8 @@ class TestUpdateCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
         monkeypatch.setattr(UpdateEntry, '_make_request', _make_request)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
         params = UpdateCommandParams(
                 toggle_read=values[2][0], toggle_star=values[2][1])

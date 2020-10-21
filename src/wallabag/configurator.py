@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import click
 
 from wallabag.api.api import (
-        Api, Error, ApiException, MINIMUM_API_VERSION, RequestException)
+        Api, Error, MINIMUM_API_VERSION, RequestException)
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.config import Options, Sections
@@ -203,24 +203,21 @@ class TokenConfigurator():
 
     def get_token(self, force_creation=False):
         if self.config.is_token_expired() or force_creation:
-            try:
-                response = ApiToken(self.config).request()
-                content = response.response
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN,
-                        content['access_token'])
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.EXPIRES,
-                        str(time.time() + content['expires_in']))
-                self.config.save()
-                return True, self.config.get(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN)
-            except ApiException as e:
-                return False, f"Error: {e.error_text} - {e.error_description}"
+            response = ApiToken(self.config).request()
+            content = response.response
+            self.config.set(
+                    Sections.TOKEN,
+                    Options.ACCESS_TOKEN,
+                    content['access_token'])
+            self.config.set(
+                    Sections.TOKEN,
+                    Options.EXPIRES,
+                    str(time.time() + content['expires_in']))
+            self.config.save()
+            return self.config.get(
+                    Sections.TOKEN,
+                    Options.ACCESS_TOKEN)
         else:
-            return True, self.config.get(
+            return self.config.get(
                     Sections.TOKEN,
                     Options.ACCESS_TOKEN)

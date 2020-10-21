@@ -279,11 +279,8 @@ class Api(ABC):
 
     def __get_authorization_header(self):
         from wallabag.configurator import TokenConfigurator
-        success, token_or_error = TokenConfigurator(self.config).get_token()
-        if not success:
-            return OAuthException(token_or_error)
-        else:
-            return {'Authorization': f"Bearer {token_or_error}"}
+        token = TokenConfigurator(self.config).get_token()
+        return {'Authorization': f"Bearer {token}"}
 
     def __make_request(self, request):
         try:
