@@ -13,7 +13,7 @@ from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.commands.tags import (
-        TagsCommand, TagsCommandParams, TagsSubcommand)
+        RemoveSubcommand, TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -265,7 +265,7 @@ def update_by_tags(ctx, tags, read, starred, force, quiet):
 
         The TAGS can be found with `tags -c list` command.
     """
-    params = UpdateCommandParams()
+    params = UpdateCommandParams(False)
     params.set_read_state = read
     params.set_star_state = starred
     params.force = force
@@ -304,7 +304,7 @@ def tags(ctx, command, entry_id, tags, tag_id):
     should be specified.
     """
     params = TagsCommandParams(entry_id=entry_id, tags=tags, tag_id=tag_id)
-    params.command = TagsSubcommand.get(command)
+    params.configure(TagsSubcommand.get(command))
     run_command(TagsCommand(ctx.obj, params))
 
 
@@ -344,7 +344,7 @@ def config(ctx, check, password, oauth):
 
 
 def run_command(command, quiet=False):
-    result, output = command.run()
+    result, output = command.execute()
     if not quiet and output:
         click.echo(output)
     if not result:

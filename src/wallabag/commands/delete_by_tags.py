@@ -5,17 +5,15 @@ from colorama import Fore, Back
 
 from wallabag.commands.tags_param import TagsParam
 from wallabag.commands.command import Command
+from wallabag.commands.params import Params
 from wallabag.api.api import ApiException
-from wallabag.api.get_list_entries import GetListEntries, Params
+from wallabag.api.get_list_entries import (
+        GetListEntries, Params as ListEntriesParams)
 from wallabag.api.delete_entry import DeleteEntry
 from wallabag.entry import Entry
 
 
-class ValidateError(Exception):
-    pass
-
-
-class DeleteByTagsParams(TagsParam):
+class DeleteByTagsParams(Params, TagsParam):
     tags = None
     force = None
     quiet = None
@@ -26,9 +24,7 @@ class DeleteByTagsParams(TagsParam):
         self.quiet = quiet
 
     def validate(self):
-        result = self._validate_tags()
-        if not result[0]:
-            raise ValidateError(result[1])
+        return self._validate_tags()
 
 
 class DeleteByTags(Command):
@@ -37,12 +33,11 @@ class DeleteByTags(Command):
         self.config = config
         self.params = params if params else DeleteByTagsParams()
 
-    def run(self):
+    def _run(self):
         try:
-            self.params.validate()
             api = GetListEntries(self.config, {
-                Params.TAGS: self.params.tags,
-                Params.COUNT: 100
+                ListEntriesParams.TAGS: self.params.tags,
+                ListEntriesParams.COUNT: 100
             })
             entries = Entry.create_list(
                     api.request().response['_embedded']["items"])
@@ -63,5 +58,5 @@ class DeleteByTags(Command):
                     click.echo(f'\t...\t{Fore.GREEN}success{Fore.RESET}')
 
             return True, None
-        except (ValidateError, ApiException) as err:
+        except ApiException as err:
             return False, str(err)

@@ -30,7 +30,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         result, output = ShowCommand(
-                self.config, ShowCommandParams(1000)).run()
+                self.config, ShowCommandParams(1000)).execute()
         assert not result
         assert output == "Error: 404: API was not found."
 
@@ -43,7 +43,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(1)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == 'title\n\n\ncontent'
 
@@ -56,7 +56,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(1, html=True)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == 'title\n\n\n<h1>head</h1>content'
 
@@ -69,7 +69,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(1, html=False, colors=False)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == 'title\n\n\n\n\nhead\ncontent'
 
@@ -82,7 +82,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(1, html=False, colors=True)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == f'title\n\n\n\n\n{Fore.BLUE}head{Fore.RESET}\ncontent'
 
@@ -97,7 +97,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(1, html=False, colors=False)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == 'title\n\n\n\n\nhead\ncontent[IMAGE "Message desc"]'
 
@@ -113,7 +113,7 @@ class TestShowCommand():
 
         params = ShowCommandParams(
                 1, html=False, colors=False, image_links=True)
-        result, output = ShowCommand(self.config, params).run()
+        result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == 'title\n\n\n\n\nhead\ncontent\
 [IMAGE "Message desc" (https://imag.es/1.jpg)]'

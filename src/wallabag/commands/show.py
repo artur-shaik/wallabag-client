@@ -9,10 +9,11 @@ from colorama import Fore
 from wallabag.api.api import ApiException
 from wallabag.api.get_entry import GetEntry
 from wallabag.commands.command import Command
+from wallabag.commands.params import Params
 from wallabag.entry import Entry
 
 
-class ShowCommandParams():
+class ShowCommandParams(Params):
 
     def __init__(self, entry_id, colors=True, html=False,
                  raw=False, image_links=False):
@@ -29,7 +30,7 @@ class ShowCommand(Command):
         self.config = config
         self.params = params
 
-    def run(self):
+    def _run(self):
         try:
             api = GetEntry(self.config, self.params.entry_id)
             entry = Entry(api.request().response)

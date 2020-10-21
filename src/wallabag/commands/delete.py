@@ -7,10 +7,11 @@ from wallabag.api.api import ApiException
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.delete_entry import DeleteEntry
 from wallabag.commands.command import Command
+from wallabag.commands.params import Params
 from wallabag.entry import Entry
 
 
-class DeleteCommandParams():
+class DeleteCommandParams(Params):
 
     def __init__(self, entry_id, force=False, quiet=False):
         self.entry_id = entry_id
@@ -26,7 +27,7 @@ class DeleteCommand(Command):
         self.config = config
         self.params = params or DeleteCommandParams()
 
-    def run(self):
+    def _run(self):
         if not self.params.force:
             try:
                 request = GetEntry(self.config, self.params.entry_id).request()

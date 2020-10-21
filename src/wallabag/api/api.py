@@ -169,7 +169,7 @@ class Api(ABC):
         request = Api.Request()
         request.url = self._get_api_url()
         if not self.skip_auth:
-            request.headers = self.__get_authorization_header()
+            request.headers = self._get_authorization_header()
         request.api_params = self._get_params()
         request.data = self._get_data()
         return self._make_request(request)
@@ -277,7 +277,7 @@ class Api(ABC):
     def _get_data(self):
         return None
 
-    def __get_authorization_header(self):
+    def _get_authorization_header(self):
         from wallabag.configurator import TokenConfigurator
         token = TokenConfigurator(self.config).get_token()
         return {'Authorization': f"Bearer {token}"}

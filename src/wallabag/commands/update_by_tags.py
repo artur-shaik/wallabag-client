@@ -16,15 +16,14 @@ class UpdateByTagsCommand(Command):
     def __init__(self, config, tags, params):
         self.config = config
         self.tags = tags
-        self.params = params or UpdateCommandParams()
+        self.params = params or UpdateCommandParams(False)
 
         self.__updating_list = []
 
-    def run(self):
+    def _run(self):
         params = self.params
 
         try:
-            params.validate(check_toggle_options=False)
             api = GetListEntries(self.config, {
                 ListParams.TAGS: self.tags,
                 ListParams.COUNT: 100
