@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 
 import functools
+import logging
 import platform
 import subprocess
-from sys import exit
+import sys
+
+from colorama import Fore
 
 import click
-from colorama import Fore
 
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.commands.tags import (
-        RemoveSubcommand, TagsCommand, TagsCommandParams, TagsSubcommand)
+        TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -29,10 +31,28 @@ from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def __init_logging(debug, debug_level):
+    log_level = logging.getLevelName(debug_level.upper())
+    logging.basicConfig(
+            level=logging.CRITICAL,
+            format=(f'{Fore.YELLOW}%(msecs)d:%(name)s:%(levelname)s: '
+                    f'%(message)s{Fore.RESET}'))
+
+    logger = logging.getLogger('wallabag')
+    if debug:
+        logger.setLevel(log_level)
+    else:
+        logger.setLevel(logging.CRITICAL)
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--config', help='Use custom configuration file')
+@click.option('--debug', is_flag=True, help='Enable debug logging to stdout')
+@click.option('--debug-level', default='debug', help='Debug level')
 @click.pass_context
-def cli(ctx, config):
+def cli(ctx, config, debug, debug_level):
+    __init_logging(debug, debug_level)
+
     # Workaround for default non-unicode encodings in the
     # Windows cmd and Powershell
     # -> Analyze encoding and set to utf-8
@@ -42,6 +62,9 @@ def cli(ctx, config):
             subprocess.check_output(['chcp', '65001'], shell=True)
 
     ctx.obj = Configs(config)
+
+    logger = logging.getLogger('wallabag')
+    logger.info('wallabag started')
 
 
 def need_config(func):
@@ -56,7 +79,7 @@ Would you like to create it now? [Y/n]
             if str.lower(i) in ["y", "yes", ""]:
                 Configurator(ctx.obj).start()
             else:
-                exit(0)
+                sys.exit(0)
         func(*args, **kwargs)
 
     return wrapper
@@ -321,7 +344,7 @@ def config(ctx, check, password, oauth):
     if check:
         (result, msg) = Validator(config).check()
         click.echo(msg)
-        exit(result)
+        sys.exit(0 if result else 1)
     options = []
     if password or oauth:
         if not config.is_valid():
@@ -340,7 +363,7 @@ def config(ctx, check, password, oauth):
         (result, msg, options) = Validator(config).check_oauth()
         if result or not options:
             click.echo(msg)
-            exit(0)
+            sys.exit(0)
 
 
 def run_command(command, quiet=False):
@@ -348,4 +371,4 @@ def run_command(command, quiet=False):
     if not quiet and output:
         click.echo(output)
     if not result:
-        exit(1)
+        sys.exit(1)

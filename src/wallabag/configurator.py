@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import re
 import time
 from abc import ABC, abstractmethod
@@ -16,12 +17,15 @@ from wallabag.config import Options, Sections
 class Configurator():
 
     def __init__(self, config):
+        self.log = logging.getLogger('wallabag.config')
         self.config = config
 
     def start(self, options=[]):
         if not options:
             options = ConfigOption.get_all(self.config)
         for option in options:
+            self.log.debug('configuring: %s', option.__class__.__name__)
+
             while not option.setup(self.config):
                 pass
 

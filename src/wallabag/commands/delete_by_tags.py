@@ -30,6 +30,7 @@ class DeleteByTagsParams(Params, TagsParam):
 class DeleteByTags(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params if params else DeleteByTagsParams()
 

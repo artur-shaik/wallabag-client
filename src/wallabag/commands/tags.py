@@ -101,6 +101,7 @@ class TagsCommandParams(Params, TagsParam):
 class TagsCommand(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params if params else TagsCommandParams()
 

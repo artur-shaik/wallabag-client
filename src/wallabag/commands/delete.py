@@ -24,6 +24,7 @@ class DeleteCommand(Command):
     WARN_MSG = 'You are going to remove the following entry'
 
     def __init__(self, config, params):
+        Command.__init__(self)
         self.config = config
         self.params = params or DeleteCommandParams()
 

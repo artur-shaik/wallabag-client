@@ -40,6 +40,7 @@ class ListParams(Params, TagsParam):
 class ListCommand(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params or ListParams()
 

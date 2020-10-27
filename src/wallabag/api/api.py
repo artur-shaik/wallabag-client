@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from abc import ABC, abstractmethod
 from enum import Enum, auto
@@ -163,15 +164,19 @@ class Api(ABC):
     skip_auth = False
 
     def __init__(self, config):
+        self.log = logging.getLogger('wallabag.api')
         self.config = config
 
     def request(self):
+        self.log.debug('making api request: %s', self.__class__.__name__)
         request = Api.Request()
         request.url = self._get_api_url()
         if not self.skip_auth:
             request.headers = self._get_authorization_header()
         request.api_params = self._get_params()
         request.data = self._get_data()
+
+        self.log.debug('request data: %s', request.__dict__)
         return self._make_request(request)
 
     def is_minimum_version(version_response):
@@ -288,11 +293,16 @@ class Api(ABC):
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data)
             response = Response(result.status_code, result.text)
+
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.MissingSchema) as error:
+            self.log.exception('request exception')
             raise RequestException(
                     'Connection error', error)
+
+        self.log.debug('response result: %s', response.__dict__)
+
         if response.has_error():
             raise RequestException(response=response)
         return response

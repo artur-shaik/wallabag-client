@@ -44,6 +44,7 @@ class UpdateCommandParams(Params):
 class UpdateCommand(Command):
 
     def __init__(self, config, entry_id, params):
+        Command.__init__(self)
         self.config = config
         self.entry_id = entry_id
         self.params = params or UpdateCommandParams()

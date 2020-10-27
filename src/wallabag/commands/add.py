@@ -30,6 +30,7 @@ class AddCommandParams(Params, TagsParam):
 class AddCommand(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params
 

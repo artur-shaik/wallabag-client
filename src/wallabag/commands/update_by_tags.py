@@ -14,6 +14,7 @@ from wallabag.entry import Entry
 class UpdateByTagsCommand(Command):
 
     def __init__(self, config, tags, params):
+        Command.__init__(self)
         self.config = config
         self.tags = tags
         self.params = params or UpdateCommandParams(False)

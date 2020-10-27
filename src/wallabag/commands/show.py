@@ -27,6 +27,7 @@ class ShowCommandParams(Params):
 class ShowCommand(Command):
 
     def __init__(self, config, params):
+        Command.__init__(self)
         self.config = config
         self.params = params
 

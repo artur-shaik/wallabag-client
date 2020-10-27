@@ -3,6 +3,7 @@
 import base64
 import configparser
 import getpass
+import logging
 import os
 import socket
 import time
@@ -50,6 +51,7 @@ class Configs():
     custom_path = None
 
     def __init__(self, path=None):
+        self.log = logging.getLogger('wallabag.config')
         self.config = configparser.ConfigParser()
         self.load(path)
 
@@ -101,14 +103,17 @@ class Configs():
         if not os.path.exists(path.parents[0]):
             os.makedirs(path.parents[0])
         with open(path, mode='w') as file:
+            self.log.debug('writing config to: %s', path)
+
             self.config.write(file)
 
     def load(self, custom_path=None):
         path = self.get_path(custom_path)
+        self.log.debug('loading config from: %s', path)
         try:
             self.config.read(path)
-        except configparser.Error as e:
-            print(e)
+        except configparser.Error:
+            self.log.exception("couldn't load config")
             raise ValueError(Configs.LOAD_ERROR)
 
     def load_or_create(self, custom_path=None):
