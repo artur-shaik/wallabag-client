@@ -11,6 +11,8 @@ from colorama import Fore
 import click
 
 from wallabag.commands.add import AddCommand, AddCommandParams
+from wallabag.commands.anno import (
+        AnnoCommand, AnnoSubcommand, AnnoCommandParams)
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
@@ -329,6 +331,30 @@ def tags(ctx, command, entry_id, tags, tag_id):
     params = TagsCommandParams(entry_id=entry_id, tags=tags, tag_id=tag_id)
     params.configure(TagsSubcommand.get(command))
     run_command(TagsCommand(ctx.obj, params))
+
+
+@cli.command(short_help="Annotations command")
+@click.option('-c', '--command', default=AnnoSubcommand.LIST.name,
+              type=click.Choice(AnnoSubcommand.list(), case_sensitive=False),
+              help="Subcommand")
+@click.option('-e', '--entry-id', type=int, help="ENTRY ID")
+@need_config
+@click.pass_context
+def anno(ctx, command, entry_id):
+    """
+    Annotations manipulation command.
+
+    list (default) command: Retrieve and print annotations for specified entry:
+
+    \b
+    {id}. {quote} ({updated}) [{length}]
+    {id}. {quote} ({updated}) [{length}]
+    {id}. {quote} ({updated}) [{length}]
+    """
+    params = AnnoCommandParams()
+    params.entry_id = entry_id
+    params.command = AnnoSubcommand.get(command)
+    run_command(AnnoCommand(ctx.obj, params))
 
 
 @cli.command()
