@@ -338,9 +338,10 @@ def tags(ctx, command, entry_id, tags, tag_id):
               type=click.Choice(AnnoSubcommand.list(), case_sensitive=False),
               help="Subcommand")
 @click.option('-e', '--entry-id', type=int, help="ENTRY ID")
+@click.option('-a', '--anno-id', type=int, help="ANNOTATION ID")
 @need_config
 @click.pass_context
-def anno(ctx, command, entry_id):
+def anno(ctx, command, entry_id, anno_id):
     """
     Annotations manipulation command.
 
@@ -353,6 +354,7 @@ def anno(ctx, command, entry_id):
     """
     params = AnnoCommandParams()
     params.entry_id = entry_id
+    params.anno_id = anno_id
     params.command = AnnoSubcommand.get(command)
     run_command(AnnoCommand(ctx.obj, params))
 

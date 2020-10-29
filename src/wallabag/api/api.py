@@ -79,6 +79,7 @@ class ApiMethod(Enum):
     DELETE_TAG_FROM_ENTRY = "/api/entries/{0}/tags/{1}"
     DELETE_TAG_BY_ID = "/api/tags/{0}"
     DELETE_TAG_BY_LABEL = "/api/tags/label"
+    DELETE_ANNOTATION = "/api/annotations/{0}"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
 
@@ -249,7 +250,7 @@ class Api(ABC):
             raise ValueException("Invalid url")
         return url
 
-    def _validate_entry_id(self, entry_id):
+    def _validate_identificator(self, entry_id):
         if not entry_id:
             raise ValueException("ENTRY_ID is not a number")
 
