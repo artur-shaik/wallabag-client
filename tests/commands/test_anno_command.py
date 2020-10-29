@@ -6,7 +6,9 @@ import humanize
 from wallabag.config import Configs
 from wallabag.api.api import Response
 from wallabag.api.get_entry import GetEntry
-from wallabag.commands.anno import AnnoCommand, AnnoCommandParams
+from wallabag.api.delete_annotation import DeleteAnnotation
+from wallabag.commands.anno import (
+        AnnoCommand, AnnoCommandParams, AnnoSubcommand)
 
 
 class TestAnno():
@@ -48,3 +50,17 @@ class TestAnno():
         assert result[0]
         past = delorean.utcnow() - delorean.parse('2020-10-28T10:50:51+0000')
         assert result[1] == f'1. quote ({humanize.naturaltime(past)}) [7]'
+
+    def test_remove_annotation(self, monkeypatch):
+
+        def request_success(self):
+            return Response(200, None)
+
+        monkeypatch.setattr(DeleteAnnotation, 'request', request_success)
+
+        params = AnnoCommandParams()
+        params.anno_id = 1
+        params.command = AnnoSubcommand.REMOVE
+        result = AnnoCommand(self.config, params).execute()
+        assert result[0]
+        assert result[1] == 'Annotation successfully deleted'

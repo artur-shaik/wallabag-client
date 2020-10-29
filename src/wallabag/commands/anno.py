@@ -9,11 +9,13 @@ from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.api import ApiException
+from wallabag.api.delete_annotation import DeleteAnnotation
 from wallabag.entry import Entry
 
 
 class AnnoSubcommand(Enum):
     LIST = auto()
+    REMOVE = auto()
 
     def list():
         return [c.name for c in AnnoSubcommand]
@@ -28,11 +30,15 @@ class AnnoSubcommand(Enum):
 class AnnoCommandParams(Params):
     command = AnnoSubcommand.LIST
     entry_id = None
+    anno_id = None
 
     def validate(self):
         if self.command == AnnoSubcommand.LIST:
             if not self.entry_id:
                 return False, 'Entry ID not specified'
+        elif self.command == AnnoSubcommand.REMOVE:
+            if not self.anno_id:
+                return False, 'Annotation ID not specified.'
         return True, None
 
 
@@ -53,6 +59,9 @@ class AnnoCommand(Command):
                     result.append(self.__get_anno_string(anno))
 
                 return True, "\n".join(result)
+            if self.params.command == AnnoSubcommand.REMOVE:
+                DeleteAnnotation(self.config, self.params.anno_id).request()
+                return True, 'Annotation successfully deleted'
         except ApiException as ex:
             return False, str(ex)
         return True, None
