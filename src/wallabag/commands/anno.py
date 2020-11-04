@@ -16,6 +16,7 @@ from wallabag.entry import Entry
 class AnnoSubcommand(Enum):
     LIST = auto()
     REMOVE = auto()
+    SHOW = auto()
 
     def list():
         return [c.name for c in AnnoSubcommand]
@@ -49,24 +50,38 @@ class AnnoCommand(Command):
         self.config = config
         self.params = params
 
+        self.__get_anno = {
+                AnnoSubcommand.LIST: self.__get_anno_string,
+                AnnoSubcommand.SHOW: self.__get_anno_full
+        }
+
     def _run(self):
+        params = self.params
         try:
-            if self.params.command == AnnoSubcommand.LIST:
-                api = GetEntry(self.config, self.params.entry_id)
+            if params.command in (AnnoSubcommand.LIST, AnnoSubcommand.SHOW):
+                api = GetEntry(self.config, params.entry_id)
                 entry = Entry(api.request().response)
                 result = []
-                for anno in entry.annotations:
-                    result.append(self.__get_anno_string(anno))
-
-                return True, "\n".join(result)
-            if self.params.command == AnnoSubcommand.REMOVE:
+                for anno in sorted(
+                        entry.annotations, key=lambda x: int(x['id'])):
+                    result.append(self.__get_anno[params.command](anno))
+                return True, "\n".join(filter(None, result))
+            if params.command == AnnoSubcommand.REMOVE:
                 DeleteAnnotation(self.config, self.params.anno_id).request()
                 return True, 'Annotation successfully deleted'
         except ApiException as ex:
             return False, str(ex)
-        return True, None
+        return False, "Unknown command"
 
     def __get_anno_string(self, anno):
         past = delorean.utcnow() - delorean.parse(anno['updated_at'])
         return (f"{anno['id']}. {anno['quote']} "
                 f"({humanize.naturaltime(past)}) [{len(anno['text'])}]")
+
+    def __get_anno_full(self, anno):
+        if self.params.anno_id:
+            if self.params.anno_id != int(anno['id']):
+                return ""
+        past = delorean.utcnow() - delorean.parse(anno['updated_at'])
+        return (f"{anno['id']}. {anno['quote']} "
+                f"({humanize.naturaltime(past)}):\n\n\t{anno['text']}\n")
