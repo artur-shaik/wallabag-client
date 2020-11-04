@@ -138,3 +138,24 @@ class TestAnno():
         assert result[1] == (
                 f'2. another quote ({humanize.naturaltime(past)}):'
                 '\n\n\tanother content\n')
+
+    def test_show_empty_params(self):
+        params = AnnoCommandParams()
+        params.command = AnnoSubcommand.SHOW
+        result = AnnoCommand(self.config, params).execute()
+        assert not result[0]
+        assert result[1] == 'Entry ID not specified'
+
+    def test_list_empty_params(self):
+        params = AnnoCommandParams()
+        params.command = AnnoSubcommand.LIST
+        result = AnnoCommand(self.config, params).execute()
+        assert not result[0]
+        assert result[1] == 'Entry ID not specified'
+
+    def test_remove_empty_params(self):
+        params = AnnoCommandParams()
+        params.command = AnnoSubcommand.REMOVE
+        result = AnnoCommand(self.config, params).execute()
+        assert not result[0]
+        assert result[1] == 'Annotation ID not specified'

@@ -34,12 +34,12 @@ class AnnoCommandParams(Params):
     anno_id = None
 
     def validate(self):
-        if self.command == AnnoSubcommand.LIST:
+        if self.command in (AnnoSubcommand.LIST, AnnoSubcommand.SHOW):
             if not self.entry_id:
                 return False, 'Entry ID not specified'
         elif self.command == AnnoSubcommand.REMOVE:
             if not self.anno_id:
-                return False, 'Annotation ID not specified.'
+                return False, 'Annotation ID not specified'
         return True, None
 
 
