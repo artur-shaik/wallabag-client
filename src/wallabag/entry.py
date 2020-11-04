@@ -8,6 +8,7 @@ class Entry:
     read = False
     starred = False
     tags = []
+    annotations = []
 
     def __init__(self, item):
         self.entry_id = item['id']
@@ -23,6 +24,8 @@ class Entry:
         self.starred = item['is_starred'] == 1
         if 'tags' in item:
             self.tags = item['tags']
+        if 'annotations' in item:
+            self.annotations = item['annotations']
 
     def create_list(items):
         return [Entry(i) for i in items]

@@ -29,7 +29,7 @@ class UpdateEntry(Api):
         return self._request_patch(request)
 
     def _get_api_url(self):
-        entry_id = self._validate_entry_id(self.entry_id)
+        entry_id = self._validate_identificator(self.entry_id)
         return self._build_url(UpdateEntry.API_METHOD).format(entry_id)
 
     def _get_data(self):
