@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from colorama import Fore
+from colorama import Fore, Back
 
 from wallabag.api.api import Response, RequestException
 from wallabag.api.get_entry import GetEntry
@@ -99,7 +99,7 @@ class TestShowCommand():
         params = ShowCommandParams(1, html=False, colors=False)
         result, output = ShowCommand(self.config, params).execute()
         assert result
-        assert output == 'title\n\n\n\n\nhead\ncontent[IMAGE "Message desc"]'
+        assert output == 'title\n\n\n\n\nhead\ncontent [IMAGE "Message desc"]'
 
     def test_entry_html_image_content_with_links(self, monkeypatch):
         def request(self):
@@ -115,5 +115,60 @@ class TestShowCommand():
                 1, html=False, colors=False, image_links=True)
         result, output = ShowCommand(self.config, params).execute()
         assert result
-        assert output == 'title\n\n\n\n\nhead\ncontent\
-[IMAGE "Message desc" (https://imag.es/1.jpg)]'
+        assert output == (
+                'title\n\n\n\n\nhead\ncontent '
+                '[IMAGE "Message desc" (https://imag.es/1.jpg)]')
+
+    def test_entry_html_image_content_with_annotations(self, monkeypatch):
+        def request(self):
+            return Response(
+                    200, (
+                        '{"id": 1, "title": "title", "content":'
+                        '"<h1>header text</h1>content<img alt=\\"Message\\"'
+                        'src=\\"https://imag.es/1.jpg\\" />",'
+                        '"url": "url", "is_archived": 0, "is_starred": 1,'
+                        '"annotations":[{'
+                        '"user": "User", "annotator_schema_version":'
+                        ' "v1.0", "id": 1, "text": "content", '
+                        '"created_at": "2020-10-28T10:50:51+0000", '
+                        '"updated_at": "2020-10-28T10:50:51+0000", '
+                        '"quote": "quote", "ranges": '
+                        '[{"start": "/h1", "startOffset": "2", '
+                        '"end": "/h1", "endOffset": "4"}]}]}'))
+
+        monkeypatch.setattr(GetEntry, 'request', request)
+
+        params = ShowCommandParams(
+                1, html=False, colors=True, image_links=True)
+        result, output = ShowCommand(self.config, params).execute()
+        assert result
+        assert output == (
+            f'title\n\n\n\n\n{Fore.BLUE}he{Back.CYAN}ad{Back.RESET} [1]er text'
+            f'{Fore.RESET}\ncontent '
+            '[IMAGE "Message" (https://imag.es/1.jpg)]')
+
+    def test_entry_html_content_with_annotations_multiline(
+            self, monkeypatch):
+        def request(self):
+            return Response(
+                200, ('{"id": 1, "title": "title", "content":'
+                      '"<h1>header text</h1>content<p>end anno</p>",'
+                      '"url": "url", "is_archived": 0, "is_starred": 1,'
+                      '"annotations":[{'
+                      '"user": "User", "annotator_schema_version":'
+                      ' "v1.0", "id": 1, "text": "content", '
+                      '"created_at": "2020-10-28T10:50:51+0000", '
+                      '"updated_at": "2020-10-28T10:50:51+0000", '
+                      '"quote": "quote", "ranges": '
+                      '[{"start": "/h1", "startOffset": "2", '
+                      '"end": "/p", "endOffset": "4"}]}]}'))
+
+        monkeypatch.setattr(GetEntry, 'request', request)
+
+        params = ShowCommandParams(
+                1, html=False, colors=True, image_links=True)
+        result, output = ShowCommand(self.config, params).execute()
+        assert result
+        assert output == (
+                f'title\n\n\n\n\n{Fore.BLUE}he{Back.CYAN}ader text'
+                f'{Fore.RESET}\ncontent\n\nend {Back.RESET} [1]anno')
