@@ -35,7 +35,8 @@ setup(
         'colorama>=0.4.3',
         'delorean',
         'humanize',
-        'lxml'
+        'lxml',
+        'tzlocal<3'
     ],
     tests_require=[
         'pytest==4.6.3',
