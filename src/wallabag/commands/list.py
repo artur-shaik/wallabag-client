@@ -4,14 +4,15 @@ import os
 import platform
 import sys
 
-from wallabag.api.api import ApiException
-from wallabag.api.get_list_entries import GetListEntries, Params
+from wallabag.api.get_list_entries import (
+        GetListEntries, Params as ListEntriesParams)
 from wallabag.commands.command import Command
+from wallabag.commands.params import Params
 from wallabag.commands.tags_param import TagsParam
 from wallabag.entry import Entry
 
 
-class ListParams(TagsParam):
+class ListParams(Params, TagsParam):
     quantity = None
     filter_read = None
     filter_starred = None
@@ -38,26 +39,21 @@ class ListParams(TagsParam):
 class ListCommand(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params or ListParams()
 
-    def run(self):
-        result, msg = self.params.validate()
-        if not result:
-            return False, msg
-        try:
-            api = GetListEntries(self.config, {
-                Params.COUNT: self.__get_quantity(),
-                Params.FILTER_READ: self.params.filter_read,
-                Params.FILTER_STARRED: self.params.filter_starred,
-                Params.OLDEST: self.params.oldest,
-                Params.TAGS: self.params.tags
-            })
-            entries = Entry.create_list(
-                    api.request().response['_embedded']["items"])
-            return True, self.__print_entries(entries)
-        except ApiException as ex:
-            return False, str(ex)
+    def _run(self):
+        api = GetListEntries(self.config, {
+            ListEntriesParams.COUNT: self.__get_quantity(),
+            ListEntriesParams.FILTER_READ: self.params.filter_read,
+            ListEntriesParams.FILTER_STARRED: self.params.filter_starred,
+            ListEntriesParams.OLDEST: self.params.oldest,
+            ListEntriesParams.TAGS: self.params.tags
+        })
+        entries = Entry.create_list(
+                api.request().response['_embedded']["items"])
+        return True, self.__print_entries(entries)
 
     def __print_entries(self, entries):
         show_read_column, show_starred_column = self.__read_star_width(entries)
@@ -142,15 +138,12 @@ class CountCommand(Command):
         self.config = config
         self.params = params or ListParams()
 
-    def run(self):
-        try:
-            api = GetListEntries(self.config, {
-                Params.COUNT: sys.maxsize,
-                Params.FILTER_READ: self.params.filter_read,
-                Params.FILTER_STARRED: self.params.filter_starred
-            })
-            response = api.request().response
-        except ApiException as ex:
-            return False, str(ex)
+    def _run(self):
+        api = GetListEntries(self.config, {
+            ListEntriesParams.COUNT: sys.maxsize,
+            ListEntriesParams.FILTER_READ: self.params.filter_read,
+            ListEntriesParams.FILTER_STARRED: self.params.filter_starred
+        })
+        response = api.request().response
 
         return True, len(response["_embedded"]["items"])

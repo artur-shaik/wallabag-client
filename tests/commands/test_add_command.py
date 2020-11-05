@@ -4,10 +4,14 @@ import pytest
 
 from tags import tags_test
 from wallabag.api.add_entry import AddEntry
-from wallabag.api.api import Response
+from wallabag.api.api import Api, Response
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.config import Configs
+
+
+def get_authorization_header(self):
+    return {'Authorization': "Bearer a1b2"}
 
 
 class TestAddCommand():
@@ -35,8 +39,10 @@ class TestAddCommand():
             return Response(200, '{"exists": 1}')
 
         monkeypatch.setattr(EntryExists, '_make_request', _make_request)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
-        result = AddCommand(self.config, AddCommandParams(url)).run()
+        result = AddCommand(self.config, AddCommandParams(url)).execute()
         assert make_request_runned
         assert result[0]
         assert result[1] == "The url was already saved."
@@ -49,7 +55,7 @@ class TestAddCommand():
         monkeypatch.setattr(EntryExists, 'request', entry_exists)
 
         params = AddCommandParams('url')
-        result = AddCommand(self.config, params).run()
+        result = AddCommand(self.config, params).execute()
         assert result[0]
         assert result[1] == "The url was already saved."
 
@@ -78,9 +84,11 @@ class TestAddCommand():
         monkeypatch.setattr(EntryExists, 'request', entry_not_exists)
         monkeypatch.setattr(AddEntry, '_make_request', _make_request)
         monkeypatch.setattr(AddEntry, '_validate_url', _validate_url)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
         params = AddCommandParams(url, title, read=read, starred=starred)
-        result = AddCommand(self.config, params).run()
+        result = AddCommand(self.config, params).execute()
         assert make_request_runned
         assert result[0]
         assert result[1] == "Entry successfully added."
@@ -109,9 +117,11 @@ class TestAddCommand():
         monkeypatch.setattr(EntryExists, 'request', entry_not_exists)
         monkeypatch.setattr(AddEntry, '_make_request', _make_request)
         monkeypatch.setattr(AddEntry, '_validate_url', _validate_url)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
         params = AddCommandParams(url, title, tags=tags[0])
-        result = AddCommand(self.config, params).run()
+        result = AddCommand(self.config, params).execute()
         if tags[0]:
             assert make_request_runned
             assert result[0]

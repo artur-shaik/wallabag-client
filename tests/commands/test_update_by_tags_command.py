@@ -63,9 +63,9 @@ class TestUpdateByTags():
         monkeypatch.setattr(UpdateEntry, 'request', success)
         monkeypatch.setattr(click, 'confirm', confirm)
 
-        params = UpdateCommandParams()
+        params = UpdateCommandParams(False)
         params.set_read_state = True
-        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).run()
+        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).execute()
         assert confirm_runned
         assert result[0]
 
@@ -103,12 +103,12 @@ class TestUpdateByTags():
         monkeypatch.setattr(UpdateEntry, 'request', success)
         monkeypatch.setattr(click, 'confirm', confirm)
 
-        params = UpdateCommandParams()
+        params = UpdateCommandParams(False)
         if values[0][0]:
             params.set_read_state = values[0][1]
         if values[1][0]:
             params.set_star_state = values[1][1]
-        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).run()
+        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).execute()
         assert confirm_runned
         assert result[0]
 
@@ -130,9 +130,9 @@ class TestUpdateByTags():
         monkeypatch.setattr(UpdateEntry, 'request', success)
         monkeypatch.setattr(click, 'confirm', confirm)
 
-        params = UpdateCommandParams()
+        params = UpdateCommandParams(False)
         params.set_read_state = True
         params.force = True
-        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).run()
+        result = UpdateByTagsCommand(self.config, 'tag,tag2', params).execute()
         assert not confirm_runned
         assert result[0]

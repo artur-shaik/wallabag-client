@@ -37,7 +37,7 @@ class TestDeleteCommand():
         monkeypatch.setattr(click, 'confirm', click_confirm)
 
         params = DeleteCommandParams(1)
-        result, output = DeleteCommand(self.config, params).run()
+        result, output = DeleteCommand(self.config, params).execute()
         assert result
         assert output == 'Cancelling'
 
@@ -62,7 +62,7 @@ class TestDeleteCommand():
         monkeypatch.setattr(click, 'confirm', click_confirm)
 
         params = DeleteCommandParams(1)
-        result, output = DeleteCommand(self.config, params).run()
+        result, output = DeleteCommand(self.config, params).execute()
 
         assert confirm_runned
 
@@ -83,6 +83,6 @@ class TestDeleteCommand():
         monkeypatch.setattr(click, 'confirm', click_confirm)
 
         params = DeleteCommandParams(1)
-        result, output = DeleteCommand(self.config, params).run()
+        result, output = DeleteCommand(self.config, params).execute()
         assert result
         assert output == 'Entry successfully deleted.'

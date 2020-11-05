@@ -61,6 +61,6 @@ class TestDeleteByTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = DeleteByTagsParams(tags='tag,tag2')
-        result = DeleteByTags(self.config, params).run()
+        result = DeleteByTags(self.config, params).execute()
         assert confirm_runned
         assert result[0]

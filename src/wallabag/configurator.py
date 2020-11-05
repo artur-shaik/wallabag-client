@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import re
 import time
 from abc import ABC, abstractmethod
@@ -7,30 +8,35 @@ from abc import ABC, abstractmethod
 import click
 
 from wallabag.api.api import (
-        Api, Error, ApiException, MINIMUM_API_VERSION, RequestException)
+        Api, Error, MINIMUM_API_VERSION, RequestException)
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
+from wallabag.commands.command import Command
 from wallabag.config import Options, Sections
 
 
 class Configurator():
 
     def __init__(self, config):
+        self.log = logging.getLogger('wallabag.config')
         self.config = config
 
     def start(self, options=[]):
         if not options:
             options = ConfigOption.get_all(self.config)
         for option in options:
+            self.log.debug('configuring: %s', option.__class__.__name__)
+
             while not option.setup(self.config):
                 pass
 
         self.config.save()
 
 
-class Validator():
+class Validator(Command):
 
     def __init__(self, config):
+        Command.__init__(self)
         self.config = config
         self.response = {
             'invalid_grant': (
@@ -50,25 +56,21 @@ class Validator():
             return (False, error.error_description, None)
         return (True, "The configuration is ok.", None)
 
-    def check(self):
+    def _run(self):
         if not self.config.is_valid():
-            return (False, "The config is missing or incomplete.")
+            return False, "The config is missing or incomplete."
 
         try:
             response = ApiVersion(self.config).request()
         except RequestException:
-            return (False, "The server or the API is not reachable.")
+            return False, "The server or the API is not reachable."
 
         if not Api.is_minimum_version(response):
-            return (False,
-                    "The version of the wallabag instance is too old.")
+            return False, "The version of the wallabag instance is too old."
 
-        try:
-            ApiToken(self.config).request()
-        except RequestException as error:
-            return (False, error.error_description)
+        ApiToken(self.config).request()
 
-        return (True, "The config is suitable.")
+        return True, "The config is suitable."
 
 
 class ConfigOption(ABC):
@@ -203,24 +205,21 @@ class TokenConfigurator():
 
     def get_token(self, force_creation=False):
         if self.config.is_token_expired() or force_creation:
-            try:
-                response = ApiToken(self.config).request()
-                content = response.response
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN,
-                        content['access_token'])
-                self.config.set(
-                        Sections.TOKEN,
-                        Options.EXPIRES,
-                        str(time.time() + content['expires_in']))
-                self.config.save()
-                return True, self.config.get(
-                        Sections.TOKEN,
-                        Options.ACCESS_TOKEN)
-            except ApiException as e:
-                return False, f"Error: {e.error_text} - {e.error_description}"
+            response = ApiToken(self.config).request()
+            content = response.response
+            self.config.set(
+                    Sections.TOKEN,
+                    Options.ACCESS_TOKEN,
+                    content['access_token'])
+            self.config.set(
+                    Sections.TOKEN,
+                    Options.EXPIRES,
+                    str(time.time() + content['expires_in']))
+            self.config.save()
+            return self.config.get(
+                    Sections.TOKEN,
+                    Options.ACCESS_TOKEN)
         else:
-            return True, self.config.get(
+            return self.config.get(
                     Sections.TOKEN,
                     Options.ACCESS_TOKEN)

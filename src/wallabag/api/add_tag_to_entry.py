@@ -23,7 +23,7 @@ class AddTagToEntry(Api):
         return self._request_post(request)
 
     def _get_api_url(self):
-        entry_id = self._validate_entry_id(self.params[Params.ENTRY_ID])
+        entry_id = self._validate_identificator(self.params[Params.ENTRY_ID])
         return self._build_url(ApiMethod.ADD_TAGS_TO_ENTRY).format(entry_id)
 
     def _get_data(self):

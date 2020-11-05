@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from wallabag.api.api import ApiException
-from wallabag.api.add_entry import AddEntry, Params
+from wallabag.api.add_entry import AddEntry, Params as AddEntryParams
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.command import Command
 from wallabag.commands.tags_param import TagsParam
+from wallabag.commands.params import Params
 
 
-class AddCommandParams(TagsParam):
+class AddCommandParams(Params, TagsParam):
     target_url = None
     title = None
     starred = None
@@ -23,35 +23,26 @@ class AddCommandParams(TagsParam):
         self.tags = tags
 
     def validate(self):
-        result, msg = self._validate_tags()
-        if not result:
-            return False, msg
-        return True, None
+        return self._validate_tags()
 
 
 class AddCommand(Command):
 
     def __init__(self, config, params=None):
+        Command.__init__(self)
         self.config = config
         self.params = params
 
-    def run(self):
+    def _run(self):
         params = self.params
-        validated, error = params.validate()
-        if not validated:
-            return False, error
+        api = EntryExists(self.config, params.target_url)
+        if api.request().response['exists']:
+            return True, "The url was already saved."
 
-        try:
-            api = EntryExists(self.config, params.target_url)
-            if api.request().response['exists']:
-                return True, "The url was already saved."
-
-            AddEntry(self.config, params.target_url, {
-                Params.TITLE: params.title,
-                Params.READ: params.read,
-                Params.STARRED: params.starred,
-                Params.TAGS: params.tags
-            }).request()
-            return True, "Entry successfully added."
-        except ApiException as ex:
-            return False, str(ex)
+        AddEntry(self.config, params.target_url, {
+            AddEntryParams.TITLE: params.title,
+            AddEntryParams.READ: params.read,
+            AddEntryParams.STARRED: params.starred,
+            AddEntryParams.TAGS: params.tags
+        }).request()
+        return True, "Entry successfully added."

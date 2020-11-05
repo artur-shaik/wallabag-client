@@ -46,7 +46,7 @@ class TestTags():
 
         monkeypatch.setattr(GetTags, 'request', request)
 
-        result, msg = TagsCommand(self.config).run()
+        result, msg = TagsCommand(self.config).execute()
         assert result
         assert msg == '3. book\n7. security\n8. gut'
 
@@ -57,7 +57,7 @@ class TestTags():
 
         monkeypatch.setattr(GetTags, 'request', request)
 
-        result, msg = TagsCommand(self.config).run()
+        result, msg = TagsCommand(self.config).execute()
         assert result
         assert not msg
 
@@ -72,7 +72,7 @@ class TestTags():
         monkeypatch.setattr(GetTagsForEntry, 'request', request)
 
         params = TagsCommandParams(entry_id=10)
-        result, msg = TagsCommand(self.config, params).run()
+        result, msg = TagsCommand(self.config, params).execute()
         assert result
         assert msg == '3. book\n7. security\n8. gut'
 
@@ -86,7 +86,7 @@ class TestTags():
         monkeypatch.setattr(GetTagsForEntry, 'request', request)
 
         params = TagsCommandParams(entry_id=10)
-        result, msg = TagsCommand(self.config, params).run()
+        result, msg = TagsCommand(self.config, params).execute()
         assert not result
 
     def test_add_tags_to_entry(self, monkeypatch):
@@ -101,7 +101,7 @@ class TestTags():
 
         params = TagsCommandParams(entry_id=10, tags='tag1')
         params.command = TagsSubcommand.ADD
-        result, msg = TagsCommand(self.config, params).run()
+        result, msg = TagsCommand(self.config, params).execute()
         assert tag_to_entry_runned
         assert result
         assert msg == 'Tags successfully added'
@@ -118,8 +118,8 @@ class TestTags():
         monkeypatch.setattr(AddTagToEntry, 'request', request)
 
         params = TagsCommandParams(entry_id=10, tags=tags[0])
-        params.command = TagsSubcommand.ADD
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.ADD)
+        result = TagsCommand(self.config, params).execute()
         if tags[0]:
             assert make_request_runned
             assert result[0]
@@ -131,8 +131,8 @@ class TestTags():
 
     def test_tags_to_entry_empty_id(self):
         params = TagsCommandParams(tags='tags')
-        params.command = TagsSubcommand.ADD
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.ADD)
+        result = TagsCommand(self.config, params).execute()
         assert not result[0]
         assert result[1] == 'Entry id not specified'
 
@@ -151,8 +151,8 @@ class TestTags():
         monkeypatch.setattr(GetEntry, 'request', getentry_request)
 
         params = TagsCommandParams(tags='tag', entry_id=1)
-        params.command = TagsSubcommand.REMOVE
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.REMOVE)
+        result = TagsCommand(self.config, params).execute()
         assert not result[0]
         assert result[1] == 'Tag "tag" not found in entry:\n\n\ttitle\n'
 
@@ -185,8 +185,8 @@ class TestTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = TagsCommandParams(tags='tag', entry_id=1)
-        params.command = TagsSubcommand.REMOVE
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.REMOVE)
+        result = TagsCommand(self.config, params).execute()
         assert confirm_runned
         assert result[0]
 
@@ -227,8 +227,8 @@ class TestTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = TagsCommandParams(tags=current_tag)
-        params.command = TagsSubcommand.REMOVE
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.REMOVE)
+        result = TagsCommand(self.config, params).execute()
         assert confirm_runned
         assert result[0]
 
@@ -252,7 +252,7 @@ class TestTags():
         monkeypatch.setattr(click, 'confirm', confirm)
 
         params = TagsCommandParams(tag_id=tag_id)
-        params.command = TagsSubcommand.REMOVE
-        result = TagsCommand(self.config, params).run()
+        params.configure(TagsSubcommand.REMOVE)
+        result = TagsCommand(self.config, params).execute()
         assert confirm_runned
         assert result[0]

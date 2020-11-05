@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
 import functools
+import logging
 import platform
 import subprocess
-from sys import exit
+import sys
 
-import click
 from colorama import Fore
 
+import click
+
 from wallabag.commands.add import AddCommand, AddCommandParams
+from wallabag.commands.anno import (
+        AnnoCommand, AnnoSubcommand, AnnoCommandParams)
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
@@ -29,10 +33,28 @@ from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def __init_logging(debug, debug_level):
+    log_level = logging.getLevelName(debug_level.upper())
+    logging.basicConfig(
+            level=logging.CRITICAL,
+            format=(f'{Fore.YELLOW}%(msecs)d:%(name)s:%(levelname)s: '
+                    f'%(message)s{Fore.RESET}'))
+
+    logger = logging.getLogger('wallabag')
+    if debug:
+        logger.setLevel(log_level)
+    else:
+        logger.setLevel(logging.CRITICAL)
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--config', help='Use custom configuration file')
+@click.option('--debug', is_flag=True, help='Enable debug logging to stdout')
+@click.option('--debug-level', default='debug', help='Debug level')
 @click.pass_context
-def cli(ctx, config):
+def cli(ctx, config, debug, debug_level):
+    __init_logging(debug, debug_level)
+
     # Workaround for default non-unicode encodings in the
     # Windows cmd and Powershell
     # -> Analyze encoding and set to utf-8
@@ -42,6 +64,9 @@ def cli(ctx, config):
             subprocess.check_output(['chcp', '65001'], shell=True)
 
     ctx.obj = Configs(config)
+
+    logger = logging.getLogger('wallabag')
+    logger.info('wallabag started')
 
 
 def need_config(func):
@@ -56,7 +81,7 @@ Would you like to create it now? [Y/n]
             if str.lower(i) in ["y", "yes", ""]:
                 Configurator(ctx.obj).start()
             else:
-                exit(0)
+                sys.exit(0)
         func(*args, **kwargs)
 
     return wrapper
@@ -265,7 +290,7 @@ def update_by_tags(ctx, tags, read, starred, force, quiet):
 
         The TAGS can be found with `tags -c list` command.
     """
-    params = UpdateCommandParams()
+    params = UpdateCommandParams(False)
     params.set_read_state = read
     params.set_star_state = starred
     params.force = force
@@ -304,8 +329,34 @@ def tags(ctx, command, entry_id, tags, tag_id):
     should be specified.
     """
     params = TagsCommandParams(entry_id=entry_id, tags=tags, tag_id=tag_id)
-    params.command = TagsSubcommand.get(command)
+    params.configure(TagsSubcommand.get(command))
     run_command(TagsCommand(ctx.obj, params))
+
+
+@cli.command(short_help="Annotations command")
+@click.option('-c', '--command', default=AnnoSubcommand.LIST.name,
+              type=click.Choice(AnnoSubcommand.list(), case_sensitive=False),
+              help="Subcommand")
+@click.option('-e', '--entry-id', type=int, help="ENTRY ID")
+@click.option('-a', '--anno-id', type=int, help="ANNOTATION ID")
+@need_config
+@click.pass_context
+def anno(ctx, command, entry_id, anno_id):
+    """
+    Annotations manipulation command.
+
+    list (default) command: Retrieve and print annotations for specified entry:
+
+    \b
+    {id}. {quote} ({updated}) [{length}]
+    {id}. {quote} ({updated}) [{length}]
+    {id}. {quote} ({updated}) [{length}]
+    """
+    params = AnnoCommandParams()
+    params.entry_id = entry_id
+    params.anno_id = anno_id
+    params.command = AnnoSubcommand.get(command)
+    run_command(AnnoCommand(ctx.obj, params))
 
 
 @cli.command()
@@ -319,15 +370,14 @@ def tags(ctx, command, entry_id, tags, tag_id):
 def config(ctx, check, password, oauth):
     config = ctx.obj
     if check:
-        (result, msg) = Validator(config).check()
-        click.echo(msg)
-        exit(result)
+        run_command(Validator(config))
+        sys.exit(0)
     options = []
     if password or oauth:
         if not config.is_valid():
             click.echo(
-                "Invalid existing config.\
-                        Therefore you have to enter all values.")
+                "Invalid existing config. "
+                "Therefore you have to enter all values.")
         else:
             if password:
                 options.append(PasswordOption())
@@ -340,12 +390,12 @@ def config(ctx, check, password, oauth):
         (result, msg, options) = Validator(config).check_oauth()
         if result or not options:
             click.echo(msg)
-            exit(0)
+            sys.exit(0)
 
 
 def run_command(command, quiet=False):
-    result, output = command.run()
+    result, output = command.execute()
     if not quiet and output:
         click.echo(output)
     if not result:
-        exit(1)
+        sys.exit(1)

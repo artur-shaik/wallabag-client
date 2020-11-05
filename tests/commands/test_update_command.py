@@ -2,11 +2,15 @@
 
 import pytest
 
-from wallabag.api.api import Response, RequestException
+from wallabag.api.api import Api, Response, RequestException
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.update_entry import UpdateEntry
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
+
+
+def get_authorization_header(self):
+    return {'Authorization': "Bearer a1b2"}
 
 
 class TestUpdateCommand():
@@ -31,14 +35,15 @@ class TestUpdateCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = UpdateCommandParams(toggle_read=True)
-        result, output = UpdateCommand(self.config, 1, params).run()
+        params = UpdateCommandParams()
+        params.toggle_read = True
+        result, output = UpdateCommand(self.config, 1, params).execute()
         assert not result
         assert output == "Error: 404: API was not found."
 
     def test_no_parameters_given(self):
         result, output = UpdateCommand(
-                self.config, 1, UpdateCommandParams()).run()
+                self.config, 1, UpdateCommandParams()).execute()
         assert not result
         assert output == 'No parameter given'
 
@@ -76,11 +81,14 @@ class TestUpdateCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
         monkeypatch.setattr(UpdateEntry, '_make_request', _make_request)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
-        params = UpdateCommandParams(
-                toggle_read=values[2][0], toggle_star=values[2][1])
+        params = UpdateCommandParams()
+        params.toggle_read = values[2][0]
+        params.toggle_star = values[2][1]
         params.set_read_state = values[2][2]
         params.set_star_state = values[2][3]
-        result, output = UpdateCommand(self.config, 1, params).run()
+        result, output = UpdateCommand(self.config, 1, params).execute()
         assert result
         assert make_request_runned

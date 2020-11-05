@@ -2,11 +2,15 @@
 
 import pytest
 
-from wallabag.api.api import Response
+from wallabag.api.api import Api, Response
 from wallabag.api.get_list_entries import GetListEntries
 from wallabag.commands.list import ListCommand, ListParams
 from wallabag.config import Configs
 from tags import tags_test
+
+
+def get_authorization_header(self):
+    return {'Authorization': "Bearer a1b2"}
 
 
 class TestListCommand():
@@ -32,7 +36,7 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.run()
+        result, entries = command.execute()
         assert result
         assert not entries
 
@@ -60,7 +64,7 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.run()
+        result, entries = command.execute()
         assert result
         assert entries
         assert entries == values[1]
@@ -81,7 +85,7 @@ class TestListCommand():
         monkeypatch.setattr(GetListEntries, 'request', list_entries)
 
         command = ListCommand(self.config)
-        result, entries = command.run()
+        result, entries = command.execute()
         assert result
         assert len(entries.split('\n')) == 2
 
@@ -99,9 +103,11 @@ class TestListCommand():
             return Response(200, text)
 
         monkeypatch.setattr(GetListEntries, '_make_request', _make_request)
+        monkeypatch.setattr(
+                Api, '_get_authorization_header', get_authorization_header)
 
         command = ListCommand(self.config, ListParams(tags=tags[0]))
-        result, entries = command.run()
+        result, entries = command.execute()
         if tags[0]:
             assert make_request_runned
             assert result
