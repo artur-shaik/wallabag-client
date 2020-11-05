@@ -32,7 +32,9 @@ setup(
         'requests>=2.11.1',
         'click>=7.0',
         'pyxdg',
-        'colorama>=0.4.3'
+        'colorama>=0.4.3',
+        'delorean',
+        'humanize'
     ],
     tests_require=[
         'pytest==4.6.3',
