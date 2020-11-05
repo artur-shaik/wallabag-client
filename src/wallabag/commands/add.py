@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from wallabag.api.api import ApiException
 from wallabag.api.add_entry import AddEntry, Params as AddEntryParams
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.command import Command
@@ -36,17 +35,14 @@ class AddCommand(Command):
 
     def _run(self):
         params = self.params
-        try:
-            api = EntryExists(self.config, params.target_url)
-            if api.request().response['exists']:
-                return True, "The url was already saved."
+        api = EntryExists(self.config, params.target_url)
+        if api.request().response['exists']:
+            return True, "The url was already saved."
 
-            AddEntry(self.config, params.target_url, {
-                AddEntryParams.TITLE: params.title,
-                AddEntryParams.READ: params.read,
-                AddEntryParams.STARRED: params.starred,
-                AddEntryParams.TAGS: params.tags
-            }).request()
-            return True, "Entry successfully added."
-        except ApiException as ex:
-            return False, str(ex)
+        AddEntry(self.config, params.target_url, {
+            AddEntryParams.TITLE: params.title,
+            AddEntryParams.READ: params.read,
+            AddEntryParams.STARRED: params.starred,
+            AddEntryParams.TAGS: params.tags
+        }).request()
+        return True, "Entry successfully added."

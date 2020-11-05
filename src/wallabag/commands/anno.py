@@ -8,7 +8,6 @@ import humanize
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.api.get_entry import GetEntry
-from wallabag.api.api import ApiException
 from wallabag.api.delete_annotation import DeleteAnnotation
 from wallabag.entry import Entry
 
@@ -57,20 +56,17 @@ class AnnoCommand(Command):
 
     def _run(self):
         params = self.params
-        try:
-            if params.command in (AnnoSubcommand.LIST, AnnoSubcommand.SHOW):
-                api = GetEntry(self.config, params.entry_id)
-                entry = Entry(api.request().response)
-                result = []
-                for anno in sorted(
-                        entry.annotations, key=lambda x: int(x['id'])):
-                    result.append(self.__get_anno[params.command](anno))
-                return True, "\n".join(filter(None, result))
-            if params.command == AnnoSubcommand.REMOVE:
-                DeleteAnnotation(self.config, self.params.anno_id).request()
-                return True, 'Annotation successfully deleted'
-        except ApiException as ex:
-            return False, str(ex)
+        if params.command in (AnnoSubcommand.LIST, AnnoSubcommand.SHOW):
+            api = GetEntry(self.config, params.entry_id)
+            entry = Entry(api.request().response)
+            result = []
+            for anno in sorted(
+                    entry.annotations, key=lambda x: int(x['id'])):
+                result.append(self.__get_anno[params.command](anno))
+            return True, "\n".join(filter(None, result))
+        if params.command == AnnoSubcommand.REMOVE:
+            DeleteAnnotation(self.config, self.params.anno_id).request()
+            return True, 'Annotation successfully deleted'
         return False, "Unknown command"
 
     def __get_anno_string(self, anno):

@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 from colorama import Fore, Back
 from lxml import etree
 
-from wallabag.api.api import ApiException
 from wallabag.api.get_entry import GetEntry
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
@@ -33,11 +32,8 @@ class ShowCommand(Command):
         self.params = params
 
     def _run(self):
-        try:
-            api = GetEntry(self.config, self.params.entry_id)
-            entry = Entry(api.request().response)
-        except ApiException as ex:
-            return False, str(ex)
+        api = GetEntry(self.config, self.params.entry_id)
+        entry = Entry(api.request().response)
 
         article = entry.content
         if not self.params.html:

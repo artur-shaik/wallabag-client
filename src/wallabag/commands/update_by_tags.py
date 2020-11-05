@@ -3,7 +3,6 @@
 import click
 from colorama import Fore, Back
 
-from wallabag.api.api import ApiException
 from wallabag.api.get_list_entries import GetListEntries, Params as ListParams
 from wallabag.commands.command import Command
 from wallabag.commands.update import UpdateCommandParams
@@ -24,34 +23,31 @@ class UpdateByTagsCommand(Command):
     def _run(self):
         params = self.params
 
-        try:
-            api = GetListEntries(self.config, {
-                ListParams.TAGS: self.tags,
-                ListParams.COUNT: 100
-            })
-            entries = Entry.create_list(
-                    api.request().response['_embedded']["items"])
-            if not params.force:
-                titles = "\n\t".join([x.title for x in entries])
-                confirm_msg = (
-                        f'{Back.GREEN}You are going to update '
-                        f'{self.__get_update_status()} '
-                        f'of followed entries:{Back.RESET}'
-                        f'\n\n\t{titles}\n\nContinue?')
-                if not click.confirm(confirm_msg):
-                    return True, 'Cancelling'
+        api = GetListEntries(self.config, {
+            ListParams.TAGS: self.tags,
+            ListParams.COUNT: 100
+        })
+        entries = Entry.create_list(
+                api.request().response['_embedded']["items"])
+        if not params.force:
+            titles = "\n\t".join([x.title for x in entries])
+            confirm_msg = (
+                    f'{Back.GREEN}You are going to update '
+                    f'{self.__get_update_status()} '
+                    f'of followed entries:{Back.RESET}'
+                    f'\n\n\t{titles}\n\nContinue?')
+            if not click.confirm(confirm_msg):
+                return True, 'Cancelling'
 
-            for entry in entries:
-                self.__log(entry.title)
-                UpdateEntry(self.config, entry.entry_id, {
-                    Params.STAR: self.params.set_star_state,
-                    Params.READ: self.params.set_read_state
-                }).request()
-                self.__log(entry.title)
+        for entry in entries:
+            self.__log(entry.title)
+            UpdateEntry(self.config, entry.entry_id, {
+                Params.STAR: self.params.set_star_state,
+                Params.READ: self.params.set_read_state
+            }).request()
+            self.__log(entry.title)
 
-            return True, None
-        except (ValueError, ApiException) as ex:
-            return False, str(ex)
+        return True, None
 
     def __get_update_status(self):
         result = ""

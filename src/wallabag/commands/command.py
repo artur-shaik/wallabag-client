@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from wallabag.api.api import ApiException
 
 
 class Command(ABC):
@@ -15,7 +16,10 @@ class Command(ABC):
         validated, msg = self.__validate()
         if not validated:
             return False, msg
-        return self._run()
+        try:
+            return self._run()
+        except ApiException as ex:
+            return False, str(ex)
 
     def __validate(self):
         if self.params:

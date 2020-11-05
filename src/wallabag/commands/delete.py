@@ -3,7 +3,6 @@
 import click
 from colorama import Back
 
-from wallabag.api.api import ApiException
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.delete_entry import DeleteEntry
 from wallabag.commands.command import Command
@@ -30,22 +29,16 @@ class DeleteCommand(Command):
 
     def _run(self):
         if not self.params.force:
-            try:
-                request = GetEntry(self.config, self.params.entry_id).request()
-                entr = Entry(request.response)
-                confirm_msg = (
-                        f"{Back.RED}{DeleteCommand.WARN_MSG}:{Back.RESET}\n\n"
-                        f"\t{entr.title}\n\n"
-                        "Continue?")
-                if not click.confirm(confirm_msg):
-                    return True, 'Cancelling'
-            except ApiException as ex:
-                return False, str(ex)
+            request = GetEntry(self.config, self.params.entry_id).request()
+            entr = Entry(request.response)
+            confirm_msg = (
+                    f"{Back.RED}{DeleteCommand.WARN_MSG}:{Back.RESET}\n\n"
+                    f"\t{entr.title}\n\n"
+                    "Continue?")
+            if not click.confirm(confirm_msg):
+                return True, 'Cancelling'
 
-        try:
-            request = DeleteEntry(self.config, self.params.entry_id).request()
-            if not self.params.quiet:
-                return True, "Entry successfully deleted."
-            return True, None
-        except ApiException as ex:
-            return False, str(ex)
+        request = DeleteEntry(self.config, self.params.entry_id).request()
+        if not self.params.quiet:
+            return True, "Entry successfully deleted."
+        return True, None

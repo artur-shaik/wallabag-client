@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from wallabag.api.api import ApiException
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.api.get_entry import GetEntry
@@ -55,20 +54,18 @@ class UpdateCommand(Command):
         read_value = params.set_read_state
         star_value = params.set_star_state
 
-        try:
-            request = GetEntry(self.config, self.entry_id).request()
-            entry = Entry(request.response)
-            if params.toggle_read is not None and params.toggle_read:
-                read_value = not entry.read
-            if params.toggle_star is not None and params.toggle_star:
-                star_value = not entry.starred
+        request = GetEntry(self.config, self.entry_id).request()
+        entry = Entry(request.response)
+        if params.toggle_read is not None and params.toggle_read:
+            read_value = not entry.read
+        if params.toggle_star is not None and params.toggle_star:
+            star_value = not entry.starred
 
-            request = UpdateEntry(self.config, self.entry_id, {
-                UpdateEntryParams.TITLE: params.new_title,
-                UpdateEntryParams.STAR: star_value,
-                UpdateEntryParams.READ: read_value
-            }).request()
-            if not params.quiet:
-                return True, "Entry successfully updated."
-        except (ValueError, ApiException) as ex:
-            return False, str(ex)
+        request = UpdateEntry(self.config, self.entry_id, {
+            UpdateEntryParams.TITLE: params.new_title,
+            UpdateEntryParams.STAR: star_value,
+            UpdateEntryParams.READ: read_value
+        }).request()
+        if not params.quiet:
+            return True, "Entry successfully updated."
+        return True, None

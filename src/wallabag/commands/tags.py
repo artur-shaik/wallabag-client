@@ -7,7 +7,6 @@ from colorama import Fore, Back
 
 from wallabag.api.add_tag_to_entry import AddTagToEntry, Params as AddTagParams
 from wallabag.api.get_tags import GetTags
-from wallabag.api.api import ApiException
 from wallabag.api.delete_tag_from_entry import DeleteTagFromEntry
 from wallabag.api.get_entry import GetEntry
 from wallabag.api.get_list_entries import GetListEntries, Params as ListParams
@@ -115,26 +114,20 @@ class TagsCommand(Command):
         return self.runner[self.params.command]()
 
     def __subcommand_list(self):
-        try:
-            if self.params.entry_id:
-                api = GetTagsForEntry(self.config, self.params.entry_id)
-            else:
-                api = GetTags(self.config)
+        if self.params.entry_id:
+            api = GetTagsForEntry(self.config, self.params.entry_id)
+        else:
+            api = GetTags(self.config)
 
-            return True, self.__parse_tags(api.request().response)
-        except ApiException as ex:
-            return False, str(ex)
+        return True, self.__parse_tags(api.request().response)
 
     def __subcommand_add(self):
-        try:
-            AddTagToEntry(self.config, {
-                AddTagParams.ENTRY_ID: self.params.entry_id,
-                AddTagParams.TAGS: self.params.tags
-            }).request()
+        AddTagToEntry(self.config, {
+            AddTagParams.ENTRY_ID: self.params.entry_id,
+            AddTagParams.TAGS: self.params.tags
+        }).request()
 
-            return True, 'Tags successfully added'
-        except ApiException as ex:
-            return False, str(ex)
+        return True, 'Tags successfully added'
 
     def __subcommand_remove(self):
         remove = {
@@ -142,13 +135,9 @@ class TagsCommand(Command):
                 RemoveSubcommand.BY_TAG_ID: self.__remove_by_tag_id,
                 RemoveSubcommand.BY_TAG_NAME: self.__remove_by_tag_name
         }
-        try:
-            if self.params.remove_command not in remove:
-                return False, 'Command not found'
-            return remove[self.params.remove_command]()
-        except ApiException as ex:
-            return False, str(ex)
-        return True, None
+        if self.params.remove_command not in remove:
+            return False, 'Command not found'
+        return remove[self.params.remove_command]()
 
     def __remove_by_tag_id(self):
         confirm_msg = (

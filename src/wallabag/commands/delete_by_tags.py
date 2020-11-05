@@ -6,7 +6,6 @@ from colorama import Fore, Back
 from wallabag.commands.tags_param import TagsParam
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
-from wallabag.api.api import ApiException
 from wallabag.api.get_list_entries import (
         GetListEntries, Params as ListEntriesParams)
 from wallabag.api.delete_entry import DeleteEntry
@@ -35,29 +34,26 @@ class DeleteByTags(Command):
         self.params = params if params else DeleteByTagsParams()
 
     def _run(self):
-        try:
-            api = GetListEntries(self.config, {
-                ListEntriesParams.TAGS: self.params.tags,
-                ListEntriesParams.COUNT: 100
-            })
-            entries = Entry.create_list(
-                    api.request().response['_embedded']["items"])
-            if not self.params.force:
-                titles = "\n\t".join([x.title for x in entries])
-                confirm_msg = (
-                        f'{Back.RED}You are going to remove '
-                        f'followed entries:{Back.RESET}'
-                        f'\n\n\t{titles}\n\nContinue?')
-                if not click.confirm(confirm_msg):
-                    return True, 'Cancelling'
+        api = GetListEntries(self.config, {
+            ListEntriesParams.TAGS: self.params.tags,
+            ListEntriesParams.COUNT: 100
+        })
+        entries = Entry.create_list(
+                api.request().response['_embedded']["items"])
+        if not self.params.force:
+            titles = "\n\t".join([x.title for x in entries])
+            confirm_msg = (
+                    f'{Back.RED}You are going to remove '
+                    f'followed entries:{Back.RESET}'
+                    f'\n\n\t{titles}\n\nContinue?')
+            if not click.confirm(confirm_msg):
+                return True, 'Cancelling'
 
-            for entry in entries:
-                if not self.params.quiet:
-                    click.echo(f'Deleting entry: {entry.title}', nl=False)
-                DeleteEntry(self.config, entry.entry_id).request()
-                if not self.params.quiet:
-                    click.echo(f'\t...\t{Fore.GREEN}success{Fore.RESET}')
+        for entry in entries:
+            if not self.params.quiet:
+                click.echo(f'Deleting entry: {entry.title}', nl=False)
+            DeleteEntry(self.config, entry.entry_id).request()
+            if not self.params.quiet:
+                click.echo(f'\t...\t{Fore.GREEN}success{Fore.RESET}')
 
-            return True, None
-        except ApiException as err:
-            return False, str(err)
+        return True, None
