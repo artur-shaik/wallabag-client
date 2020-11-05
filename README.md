@@ -17,8 +17,37 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 - Mark existing entries as read;
 - Mark existing entries as starred;
 - Change the title of existing entries;
-- Tags support.
+- Tags support;
+- Annotations support.
 
 ## Installation
 
 `sudo pip3 install wallabag-client`
+
+## Usage
+
+`wallabag --help`
+
+```
+Usage: wallabag [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --config TEXT       Use custom configuration file
+  --debug             Enable debug logging to stdout
+  --debug-level TEXT  Debug level
+  -h, --help          Show this message and exit.
+
+Commands:
+  add             Add a new entry to wallabag.
+  anno            Annotations command
+  config
+  delete          Delete an entry from wallabag.
+  delete-by-tags  Delete entries from wallabag by tags.
+  list            List the entries on the wallabag account.
+  read            Toggle the read-status of an existing entry.
+  show            Show the text of an entry.
+  star            Toggle the starred-status of an existing entry.
+  tags            Retrieve and print all tags.
+  update          Toggle the read or starred status or change the title of...
+  update-by-tags  Set the read or starred status of an existing entries...
+```
