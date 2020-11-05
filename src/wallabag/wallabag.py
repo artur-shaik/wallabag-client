@@ -370,15 +370,14 @@ def anno(ctx, command, entry_id, anno_id):
 def config(ctx, check, password, oauth):
     config = ctx.obj
     if check:
-        (result, msg) = Validator(config).check()
-        click.echo(msg)
-        sys.exit(0 if result else 1)
+        run_command(Validator(config))
+        sys.exit(0)
     options = []
     if password or oauth:
         if not config.is_valid():
             click.echo(
-                "Invalid existing config.\
-                        Therefore you have to enter all values.")
+                "Invalid existing config. "
+                "Therefore you have to enter all values.")
         else:
             if password:
                 options.append(PasswordOption())

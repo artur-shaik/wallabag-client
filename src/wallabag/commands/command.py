@@ -7,6 +7,8 @@ from wallabag.api.api import ApiException
 
 class Command(ABC):
 
+    params = None
+
     def __init__(self):
         self.log = logging.getLogger('wallabag.command')
 

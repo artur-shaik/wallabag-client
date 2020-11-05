@@ -105,7 +105,7 @@ class TestConfigurator():
         monkeypatch.setattr(ApiToken, 'request', api_success)
         monkeypatch.setattr(Api, 'is_minimum_version', is_minimum_version)
 
-        (result, msg) = Validator(self.configs).check()
+        (result, msg) = Validator(self.configs).execute()
 
         assert result
         assert msg == 'The config is suitable.'
@@ -115,7 +115,7 @@ class TestConfigurator():
         monkeypatch.setattr(ApiToken, 'request', api_failure)
         monkeypatch.setattr(Api, 'is_minimum_version', is_minimum_version)
 
-        (result, msg) = Validator(self.configs).check()
+        (result, msg) = Validator(self.configs).execute()
 
         assert not result
         assert msg == 'The server or the API is not reachable.'

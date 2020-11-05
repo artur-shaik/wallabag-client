@@ -11,6 +11,7 @@ from wallabag.api.api import (
         Api, Error, MINIMUM_API_VERSION, RequestException)
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
+from wallabag.commands.command import Command
 from wallabag.config import Options, Sections
 
 
@@ -32,9 +33,10 @@ class Configurator():
         self.config.save()
 
 
-class Validator():
+class Validator(Command):
 
     def __init__(self, config):
+        Command.__init__(self)
         self.config = config
         self.response = {
             'invalid_grant': (
@@ -54,25 +56,21 @@ class Validator():
             return (False, error.error_description, None)
         return (True, "The configuration is ok.", None)
 
-    def check(self):
+    def _run(self):
         if not self.config.is_valid():
-            return (False, "The config is missing or incomplete.")
+            return False, "The config is missing or incomplete."
 
         try:
             response = ApiVersion(self.config).request()
         except RequestException:
-            return (False, "The server or the API is not reachable.")
+            return False, "The server or the API is not reachable."
 
         if not Api.is_minimum_version(response):
-            return (False,
-                    "The version of the wallabag instance is too old.")
+            return False, "The version of the wallabag instance is too old."
 
-        try:
-            ApiToken(self.config).request()
-        except RequestException as error:
-            return (False, error.error_description)
+        ApiToken(self.config).request()
 
-        return (True, "The config is suitable.")
+        return True, "The config is suitable."
 
 
 class ConfigOption(ABC):
