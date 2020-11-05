@@ -34,7 +34,8 @@ setup(
         'pyxdg',
         'colorama>=0.4.3',
         'delorean',
-        'humanize'
+        'humanize',
+        'lxml'
     ],
     tests_require=[
         'pytest==4.6.3',
