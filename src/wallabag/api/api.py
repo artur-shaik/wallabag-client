@@ -293,8 +293,10 @@ class Api(ABC):
             result = Api.REQUEST_METHODS[request.type](
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data)
-            response = Response(result.status_code, result.text)
 
+            if result.text:
+                self.log.debug(f'response raw: {result.text}')
+            response = Response(result.status_code, result.text)
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.MissingSchema) as error:

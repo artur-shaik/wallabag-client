@@ -18,6 +18,7 @@ from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
+from wallabag.commands.info import InfoCommand, InfoCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -357,6 +358,17 @@ def anno(ctx, command, entry_id, anno_id):
     params.anno_id = anno_id
     params.command = AnnoSubcommand.get(command)
     run_command(AnnoCommand(ctx.obj, params))
+
+
+@cli.command(short_help="Information command")
+@click.argument('entry_id', required=True)
+@need_config
+@click.pass_context
+def info(ctx, entry_id):
+    """
+    Show entry information
+    """
+    run_command(InfoCommand(ctx.obj, InfoCommandParams(entry_id)))
 
 
 @cli.command()
