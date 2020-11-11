@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from colorama import Fore
+
 from wallabag.api.add_entry import AddEntry, Params as AddEntryParams
 from wallabag.api.entry_exists import EntryExists
 from wallabag.commands.command import Command
 from wallabag.commands.tags_param import TagsParam
 from wallabag.commands.params import Params
+from wallabag.entry import Entry
 
 
 class AddCommandParams(Params, TagsParam):
@@ -39,10 +42,12 @@ class AddCommand(Command):
         if api.request().response['exists']:
             return True, "The url was already saved."
 
-        AddEntry(self.config, params.target_url, {
+        entry = Entry(AddEntry(self.config, params.target_url, {
             AddEntryParams.TITLE: params.title,
             AddEntryParams.READ: params.read,
             AddEntryParams.STARRED: params.starred,
             AddEntryParams.TAGS: params.tags
-        }).request()
-        return True, "Entry successfully added."
+        }).request().response)
+        return True, (
+                "Entry successfully added:\n\n"
+                f"\t{Fore.GREEN}{entry.entry_id}. {entry.title}{Fore.RESET}\n")

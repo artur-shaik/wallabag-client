@@ -2,6 +2,8 @@
 
 import pytest
 
+from colorama import Fore
+
 from tags import tags_test
 from wallabag.api.add_entry import AddEntry
 from wallabag.api.api import Api, Response
@@ -112,7 +114,21 @@ class TestAddCommand():
             assert request.data[
                     AddEntry.ApiParams.TAGS.value].split(',') == tags[1]
             assert request.data[AddEntry.ApiParams.TITLE.value] == title
-            return Response(200, None)
+            return Response(200, (
+                    '{"is_archived":0,"is_starred":0,"user_name":"wallabag",'
+                    '"user_email":"","user_id":1,"tags":[],"is_public":false,'
+                    '"id":15,"uid":null,"title":"title of entry",'
+                    '"url":"url","content":"content",'
+                    '"created_at":"2020-11-11T05:02:11+0000",'
+                    '"updated_at":"2020-11-11T05:02:11+0000",'
+                    '"published_at":null,"published_by":null,'
+                    '"starred_at":null,"annotations":null,'
+                    '"mimetype":"text/html","language":null,'
+                    '"reading_time":7,"domain_name":"domain",'
+                    '"preview_picture":"http://pic.com/pic.png",'
+                    '"http_status":"200","headers":null,"origin_url":null,'
+                    '"_links":{"self":{"href":"/api/entries/15"}}}'
+                ))
 
         monkeypatch.setattr(EntryExists, 'request', entry_not_exists)
         monkeypatch.setattr(AddEntry, '_make_request', _make_request)
@@ -125,7 +141,9 @@ class TestAddCommand():
         if tags[0]:
             assert make_request_runned
             assert result[0]
-            assert result[1] == "Entry successfully added."
+            assert result[1] == (
+                    "Entry successfully added:\n\n"
+                    f"\t{Fore.GREEN}15. title of entry{Fore.RESET}\n")
         else:
             assert not make_request_runned
             assert not result[0]
