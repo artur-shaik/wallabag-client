@@ -81,7 +81,16 @@ class TestAddCommand():
             assert request.data[AddEntry.ApiParams.ARCHIVE.value] == 0
             assert request.data[AddEntry.ApiParams.STARRED.value] == 1
             assert request.data[AddEntry.ApiParams.TITLE.value] == title
-            return Response(200, None)
+            return Response(200, (
+                    '{"is_archived":0,"is_starred":0,"user_name":"wallabag",'
+                    '"user_email":"","user_id":1,"tags":[],"is_public":false,'
+                    '"id":15,"uid":null,"title":"title of entry",'
+                    '"url":"url","content":"content",'
+                    '"created_at":"2020-11-11T05:02:11+0000",'
+                    '"updated_at":"2020-11-11T05:02:11+0000",'
+                    '"published_at":null,"published_by":null,'
+                    '"starred_at":null,"annotations":null}'
+                ))
 
         monkeypatch.setattr(EntryExists, 'request', entry_not_exists)
         monkeypatch.setattr(AddEntry, '_make_request', _make_request)
@@ -93,7 +102,9 @@ class TestAddCommand():
         result = AddCommand(self.config, params).execute()
         assert make_request_runned
         assert result[0]
-        assert result[1] == "Entry successfully added."
+        assert result[1] == (
+                "Entry successfully added:\n\n"
+                f"\t{Fore.GREEN}15. title of entry{Fore.RESET}\n")
 
     @pytest.mark.parametrize('tags', tags_test)
     def test_add_with_tags(self, monkeypatch, tags):

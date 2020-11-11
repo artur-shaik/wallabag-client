@@ -1,14 +1,14 @@
+import re
 import json
 import logging
-import re
-from abc import ABC, abstractmethod
-from enum import Enum, auto
 
-from packaging import version
+from abc import ABC, abstractmethod
+from enum import auto, Enum
+from wallabag.config import Options, Sections
 
 import requests
 
-from wallabag.config import Options, Sections
+from packaging import version
 
 MINIMUM_API_VERSION = "2.1.1"
 
@@ -286,6 +286,7 @@ class Api(ABC):
 
     def _get_authorization_header(self):
         from wallabag.configurator import TokenConfigurator
+
         token = TokenConfigurator(self.config).get_token()
         return {'Authorization': f"Bearer {token}"}
 
