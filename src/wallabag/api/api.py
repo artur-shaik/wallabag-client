@@ -104,7 +104,8 @@ class Response:
         if text:
             try:
                 self.response = json.loads(text)
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as err:
+                self.error_text = str(err)
                 self.response = text
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
