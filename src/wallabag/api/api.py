@@ -177,8 +177,6 @@ class Api(ABC):
             request.headers = self._get_authorization_header()
         request.api_params = self._get_params()
         request.data = self._get_data()
-
-        self.log.debug('request data: %s', request.__dict__)
         return self._make_request(request)
 
     def is_minimum_version(version_response):
@@ -292,12 +290,12 @@ class Api(ABC):
 
     def __make_request(self, request):
         try:
+            self.log.debug('request data: %s', request.__dict__)
+
             result = Api.REQUEST_METHODS[request.type](
                     request.url, headers=request.headers,
-                    params=request.api_params, data=request.data)
-
-            if result.text:
-                self.log.debug(f'response raw: {result.text}')
+                    params=request.api_params, data=request.data,
+                    allow_redirects=True)
             response = Response(result.status_code, result.text)
         except (
                 requests.exceptions.ConnectionError,
