@@ -18,6 +18,7 @@ from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
+from wallabag.commands.open import OpenCommand, OpenCommandParams
 from wallabag.commands.info import InfoCommand, InfoCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
@@ -370,6 +371,20 @@ def info(ctx, entry_id):
     Show entry information
     """
     run_command(InfoCommand(ctx.obj, InfoCommandParams(entry_id)))
+
+
+@cli.command(short_help="Open entry in browser")
+@click.option('-o', '--open-original', is_flag=True,
+              help="Open original article")
+@click.argument('entry_id', required=True)
+@need_config
+@click.pass_context
+def open(ctx, entry_id, open_original):
+    """
+    Open entry in browser
+    """
+    run_command(
+            OpenCommand(ctx.obj, OpenCommandParams(entry_id, open_original)))
 
 
 @cli.command()
