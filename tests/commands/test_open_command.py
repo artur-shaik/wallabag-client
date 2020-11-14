@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import webbrowser
+from webbrowser import BaseBrowser
 
 from click.testing import CliRunner
 from wallabag.commands.open import OpenCommand, OpenCommandParams
@@ -27,7 +27,7 @@ class TestOpenCommand():
     def test_open_command(self, monkeypatch):
         open_new_tab_runned = False
 
-        def open_new_tab(url):
+        def open_new_tab(self, url):
             nonlocal open_new_tab_runned
             open_new_tab_runned = True
             assert url == 'url/view/1'
@@ -38,7 +38,7 @@ class TestOpenCommand():
                             "url": "url", "is_archived": 0, "is_starred": 1}')
 
         monkeypatch.setattr(GetEntry, 'request', request)
-        monkeypatch.setattr(webbrowser, 'open_new_tab', open_new_tab)
+        monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
         result, msg = OpenCommand(self.config, OpenCommandParams(1)).execute()
         assert open_new_tab_runned
@@ -48,7 +48,7 @@ class TestOpenCommand():
     def test_open_original(self, monkeypatch):
         open_new_tab_runned = False
 
-        def open_new_tab(url):
+        def open_new_tab(self, url):
             nonlocal open_new_tab_runned
             open_new_tab_runned = True
             assert url == 'url'
@@ -59,7 +59,7 @@ class TestOpenCommand():
                             "url": "url", "is_archived": 0, "is_starred": 1}')
 
         monkeypatch.setattr(GetEntry, 'request', request)
-        monkeypatch.setattr(webbrowser, 'open_new_tab', open_new_tab)
+        monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
         result, msg = OpenCommand(
                 self.config, OpenCommandParams(1, True)).execute()
@@ -90,5 +90,18 @@ class TestOpenCommand():
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-o'])
+        print(result.exception)
+        assert result.exit_code == 0
+
+    def test_command_browser(self, monkeypatch):
+        def run_command(command, quiet=False):
+            assert command.__class__.__name__ == 'OpenCommand'
+            assert command.params.entry_id == '1'
+            assert command.params.browser == 'elinks'
+
+        monkeypatch.setattr(wallabag, 'run_command', run_command)
+
+        runner = CliRunner()
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'elinks'])
         print(result.exception)
         assert result.exit_code == 0

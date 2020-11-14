@@ -12,10 +12,12 @@ from wallabag.config import Sections, Options
 class OpenCommandParams(Params):
     entry_id = None
     open_original = False
+    browser = None
 
-    def __init__(self, entry_id, open_original=False):
+    def __init__(self, entry_id, open_original=False, browser=None):
         self.entry_id = entry_id
         self.open_original = open_original
+        self.browser = browser
 
     def validate(self):
         if not self.entry_id:
@@ -41,6 +43,7 @@ class OpenCommand(Command):
             serverurl = self.config.get(Sections.API, Options.SERVERURL)
             url = f"{serverurl}/view/{entry.entry_id}"
 
-        webbrowser.open_new_tab(url)
+        browser = webbrowser.get(self.params.browser)
+        browser.open_new_tab(url)
 
         return True, None

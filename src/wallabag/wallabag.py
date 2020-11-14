@@ -376,15 +376,22 @@ def info(ctx, entry_id):
 @cli.command(short_help="Open entry in browser")
 @click.option('-o', '--open-original', is_flag=True,
               help="Open original article")
+@click.option('-b', '--browser', type=str, help="Use particular browser")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def open(ctx, entry_id, open_original):
+def open(ctx, entry_id, open_original, browser):
     """
     Open entry in browser
+
+    The `browser` parameter should be one of this list:
+    https://docs.python.org/3/library/webbrowser.html#webbrowser.register
+
+    Example: open 10 -b w3m
     """
     run_command(
-            OpenCommand(ctx.obj, OpenCommandParams(entry_id, open_original)))
+            OpenCommand(
+                ctx.obj, OpenCommandParams(entry_id, open_original, browser)))
 
 
 @cli.command()
