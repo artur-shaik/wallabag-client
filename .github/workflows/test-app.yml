@@ -19,6 +19,7 @@ jobs:
         python-version: 3.8
     - name: Install dependencies
       run: |
+        sudo apt-get install w3m
         python -m pip install --upgrade pip
         pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov
         python setup.py build
@@ -28,6 +29,7 @@ jobs:
         flake8 . --count --radon-max-cc 10 --select=E9,F63,F7,F82 --show-source --statistics
     - name: Test with pytest
       run: |
+        export TERM=xterm
         pytest --cov=wallabag
     - name: Report coverage
       run: codecov
