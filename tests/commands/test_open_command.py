@@ -77,9 +77,8 @@ class TestOpenCommand():
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
-        print(result.exc_info)
-        print(result.stderr_bytes)
-        assert result.exit_code == 0
+        print(result)
+        assert not result.exception
 
     def test_command_open_original(self, monkeypatch):
         def run_command(command, quiet=False):
@@ -91,9 +90,8 @@ class TestOpenCommand():
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-o', '-b', 'w3m'])
-        print(result.exc_info)
-        print(result.stderr_bytes)
-        assert result.exit_code == 0
+        print(result)
+        assert not result.exception
 
     def test_command_browser(self, monkeypatch):
         def run_command(command, quiet=False):
@@ -105,6 +103,5 @@ class TestOpenCommand():
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
-        print(result.exc_info)
-        print(result.stderr_bytes)
-        assert result.exit_code == 0
+        print(result)
+        assert not result.exception
