@@ -88,14 +88,19 @@ class TestOpenCommand():
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-o', '-b', 'w3m'], catch_exceptions=False)
-
+        
     def test_command_browser(self, monkeypatch):
+        command_runned = False
+
         def run_command(command, quiet=False):
+            nonlocal command_runned
+            command_runned = True
             assert command.__class__.__name__ == 'OpenCommand'
             assert command.params.entry_id == '1'
-            assert command.params.browser != 'w3m'
+            assert command.params.browser == 'w3m'
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
+        runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
+        assert command_runned
