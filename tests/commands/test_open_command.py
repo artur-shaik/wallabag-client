@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import functools
+import click
+
 from webbrowser import BaseBrowser
 
 from click.testing import CliRunner
@@ -91,6 +94,14 @@ class TestOpenCommand():
         
     def test_command_browser(self, monkeypatch):
         command_runned = False
+        
+        def need_config(func):
+            @functools.wraps(func)
+            @click.pass_context
+            def wrapper(ctx, *args, **kwargs):
+                func(*args, **kwargs)
+
+            return wrapper
 
         def run_command(command, quiet=False):
             nonlocal command_runned
@@ -100,6 +111,7 @@ class TestOpenCommand():
             assert command.params.browser == 'w3m'
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
+        monkeypatch.setattr(wallabag, 'need_config', need_config)
 
         runner = CliRunner()
         result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
