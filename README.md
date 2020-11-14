@@ -18,7 +18,9 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 - Mark existing entries as starred;
 - Change the title of existing entries;
 - Tags support;
-- Annotations support.
+- Annotations support;
+- Opening entries in browser;
+- Showing entry information.
 
 ## Installation
 
@@ -35,6 +37,7 @@ Options:
   --config TEXT       Use custom configuration file
   --debug             Enable debug logging to stdout
   --debug-level TEXT  Debug level
+  --version           Show the version and exit.
   -h, --help          Show this message and exit.
 
 Commands:
@@ -43,7 +46,9 @@ Commands:
   config
   delete          Delete an entry from wallabag.
   delete-by-tags  Delete entries from wallabag by tags.
+  info            Information command
   list            List the entries on the wallabag account.
+  open            Open entry in browser
   read            Toggle the read-status of an existing entry.
   show            Show the text of an entry.
   star            Toggle the starred-status of an existing entry.

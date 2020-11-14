@@ -18,6 +18,8 @@ from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
+from wallabag.commands.open import OpenCommand, OpenCommandParams
+from wallabag.commands.info import InfoCommand, InfoCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
 from wallabag.config import Configs
 from wallabag.configurator import (
@@ -51,6 +53,7 @@ def __init_logging(debug, debug_level):
 @click.option('--config', help='Use custom configuration file')
 @click.option('--debug', is_flag=True, help='Enable debug logging to stdout')
 @click.option('--debug-level', default='debug', help='Debug level')
+@click.version_option(prog_name="wallabag")
 @click.pass_context
 def cli(ctx, config, debug, debug_level):
     __init_logging(debug, debug_level)
@@ -357,6 +360,38 @@ def anno(ctx, command, entry_id, anno_id):
     params.anno_id = anno_id
     params.command = AnnoSubcommand.get(command)
     run_command(AnnoCommand(ctx.obj, params))
+
+
+@cli.command(short_help="Information command")
+@click.argument('entry_id', required=True)
+@need_config
+@click.pass_context
+def info(ctx, entry_id):
+    """
+    Show entry information
+    """
+    run_command(InfoCommand(ctx.obj, InfoCommandParams(entry_id)))
+
+
+@cli.command(short_help="Open entry in browser")
+@click.option('-o', '--open-original', is_flag=True,
+              help="Open original article")
+@click.option('-b', '--browser', type=str, help="Use particular browser")
+@click.argument('entry_id', required=True)
+@need_config
+@click.pass_context
+def open(ctx, entry_id, open_original, browser):
+    """
+    Open entry in browser
+
+    The `browser` parameter should be one of this list:
+    https://docs.python.org/3/library/webbrowser.html#webbrowser.register
+
+    Example: open 10 -b w3m
+    """
+    run_command(
+            OpenCommand(
+                ctx.obj, OpenCommandParams(entry_id, open_original, browser)))
 
 
 @cli.command()

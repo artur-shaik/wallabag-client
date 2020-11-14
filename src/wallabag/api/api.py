@@ -1,14 +1,14 @@
+import re
 import json
 import logging
-import re
-from abc import ABC, abstractmethod
-from enum import Enum, auto
 
-from packaging import version
+from abc import ABC, abstractmethod
+from enum import auto, Enum
+from wallabag.config import Options, Sections
 
 import requests
 
-from wallabag.config import Options, Sections
+from packaging import version
 
 MINIMUM_API_VERSION = "2.1.1"
 
@@ -104,7 +104,8 @@ class Response:
         if text:
             try:
                 self.response = json.loads(text)
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as err:
+                self.error_text = str(err)
                 self.response = text
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
@@ -283,6 +284,7 @@ class Api(ABC):
 
     def _get_authorization_header(self):
         from wallabag.configurator import TokenConfigurator
+
         token = TokenConfigurator(self.config).get_token()
         return {'Authorization': f"Bearer {token}"}
 
@@ -295,7 +297,6 @@ class Api(ABC):
                     params=request.api_params, data=request.data,
                     allow_redirects=True)
             response = Response(result.status_code, result.text)
-
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.MissingSchema) as error:
