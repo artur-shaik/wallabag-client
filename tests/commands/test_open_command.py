@@ -40,7 +40,7 @@ class TestOpenCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
         monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
-        result, msg = OpenCommand(self.config, OpenCommandParams(1)).execute()
+        result, msg = OpenCommand(self.config, OpenCommandParams(1, browser='w3m')).execute()
         assert open_new_tab_runned
         assert result
         assert not msg
@@ -62,7 +62,7 @@ class TestOpenCommand():
         monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
         result, msg = OpenCommand(
-                self.config, OpenCommandParams(1, True)).execute()
+                self.config, OpenCommandParams(1, True, browser='w3m')).execute()
         assert open_new_tab_runned
         assert result
         assert not msg
@@ -76,7 +76,7 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
         print(result.exception)
         assert result.exit_code == 0
 
@@ -89,7 +89,7 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-o'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-o', '-b', 'w3m'])
         print(result.exception)
         assert result.exit_code == 0
 
@@ -97,11 +97,11 @@ class TestOpenCommand():
         def run_command(command, quiet=False):
             assert command.__class__.__name__ == 'OpenCommand'
             assert command.params.entry_id == '1'
-            assert command.params.browser == 'elinks'
+            assert command.params.browser == 'w3m'
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'elinks'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
         print(result.exception)
         assert result.exit_code == 0
