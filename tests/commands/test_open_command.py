@@ -102,5 +102,11 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        runner.invoke(wallabag.cli, 'open 1 -b w3m', catch_exceptions=False)
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
+        print(result)
+        print(result.exc_info)
+        print(result.exception)
+        print(result.output)
+        print(result.stderr)
+        print(result.stdout)
         assert command_runned
