@@ -10,7 +10,13 @@ from wallabag.api.api import Response
 from wallabag import wallabag
 
 
+def config__is_valid(self):
+    return True
+
+
 class TestOpenCommand():
+
+    runner = CliRunner()
 
     def setup_method(self, method):
         self.config = Configs("/tmp/config")
@@ -40,7 +46,9 @@ class TestOpenCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
         monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
-        result, msg = OpenCommand(self.config, OpenCommandParams(1)).execute()
+        result, msg = OpenCommand(
+                self.config, OpenCommandParams(
+                    1, browser='w3m')).execute()
         assert open_new_tab_runned
         assert result
         assert not msg
@@ -62,46 +70,65 @@ class TestOpenCommand():
         monkeypatch.setattr(BaseBrowser, 'open_new_tab', open_new_tab)
 
         result, msg = OpenCommand(
-                self.config, OpenCommandParams(1, True)).execute()
+                self.config, OpenCommandParams(
+                    1, True, browser='w3m')).execute()
         assert open_new_tab_runned
         assert result
         assert not msg
 
     def test_command_open_simple(self, monkeypatch):
+        command_runned = False
+
         def run_command(command, quiet=False):
+            nonlocal command_runned
+            command_runned = True
             assert command.__class__.__name__ == 'OpenCommand'
             assert command.params.entry_id == '1'
             assert not command.params.open_original
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
+        monkeypatch.setattr(Configs, 'is_valid', config__is_valid)
 
-        runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1'])
-        print(result.exception)
+        result = self.runner.invoke(
+                wallabag.cli, ['open', '1', '-b', 'w3m'],
+                catch_exceptions=False)
+        assert command_runned
         assert result.exit_code == 0
 
     def test_command_open_original(self, monkeypatch):
+        command_runned = False
+
         def run_command(command, quiet=False):
+            nonlocal command_runned
+            command_runned = True
             assert command.__class__.__name__ == 'OpenCommand'
             assert command.params.entry_id == '1'
             assert command.params.open_original
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
+        monkeypatch.setattr(Configs, 'is_valid', config__is_valid)
 
-        runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-o'])
-        print(result.exception)
+        result = self.runner.invoke(
+                wallabag.cli, ['open', '1', '-o', '-b', 'w3m'],
+                catch_exceptions=False)
+        assert command_runned
         assert result.exit_code == 0
 
     def test_command_browser(self, monkeypatch):
+        command_runned = False
+
         def run_command(command, quiet=False):
+            nonlocal command_runned
+            command_runned = True
             assert command.__class__.__name__ == 'OpenCommand'
             assert command.params.entry_id == '1'
-            assert command.params.browser == 'elinks'
+            assert command.params.browser == 'w3m'
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
+        monkeypatch.setattr(Configs, 'is_valid', config__is_valid)
 
-        runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'elinks'])
-        print(result.exception)
+        result = self.runner.invoke(
+                wallabag.cli, ['open', '1', '-b', 'w3m'],
+                catch_exceptions=False)
+        assert command_runned
         assert result.exit_code == 0
