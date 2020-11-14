@@ -19,7 +19,7 @@ jobs:
         python-version: 3.8
     - name: Install dependencies
       run: |
-        apt-get install w3m
+        sudo apt-get install w3m
         python -m pip install --upgrade pip
         pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov
         python setup.py build
