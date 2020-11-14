@@ -336,7 +336,7 @@ def tags(ctx, command, entry_id, tags, tag_id):
     run_command(TagsCommand(ctx.obj, params))
 
 
-@cli.command(short_help="Annotations command")
+@cli.command(short_help="Annotation commands.")
 @click.option('-c', '--command', default=AnnoSubcommand.LIST.name,
               type=click.Choice(AnnoSubcommand.list(), case_sensitive=False),
               help="Subcommand")
@@ -362,18 +362,18 @@ def anno(ctx, command, entry_id, anno_id):
     run_command(AnnoCommand(ctx.obj, params))
 
 
-@cli.command(short_help="Information command")
+@cli.command(short_help="Get entry information.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
 def info(ctx, entry_id):
     """
-    Show entry information
+    Show entry information.
     """
     run_command(InfoCommand(ctx.obj, InfoCommandParams(entry_id)))
 
 
-@cli.command(short_help="Open entry in browser")
+@cli.command(short_help="Open entry in browser.")
 @click.option('-o', '--open-original', is_flag=True,
               help="Open original article")
 @click.option('-b', '--browser', type=str, help="Use particular browser")
@@ -382,7 +382,7 @@ def info(ctx, entry_id):
 @click.pass_context
 def open(ctx, entry_id, open_original, browser):
     """
-    Open entry in browser
+    Open entry in browser.
 
     The `browser` parameter should be one of this list:
     https://docs.python.org/3/library/webbrowser.html#webbrowser.register
@@ -394,7 +394,7 @@ def open(ctx, entry_id, open_original, browser):
                 ctx.obj, OpenCommandParams(entry_id, open_original, browser)))
 
 
-@cli.command()
+@cli.command(short_help="Start configuration.")
 @click.option('-c', '--check', is_flag=True,
               help="Check the config for errors.")
 @click.option('-p', '--password', is_flag=True,

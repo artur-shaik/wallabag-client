@@ -42,13 +42,13 @@ Options:
 
 Commands:
   add             Add a new entry to wallabag.
-  anno            Annotations command
-  config
+  anno            Annotation commands.
+  config          Start configuration.
   delete          Delete an entry from wallabag.
   delete-by-tags  Delete entries from wallabag by tags.
-  info            Information command
+  info            Get entry information.
   list            List the entries on the wallabag account.
-  open            Open entry in browser
+  open            Open entry in browser.
   read            Toggle the read-status of an existing entry.
   show            Show the text of an entry.
   star            Toggle the starred-status of an existing entry.
