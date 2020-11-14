@@ -76,7 +76,7 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
         print(result)
         assert not result.exception
 
@@ -89,7 +89,7 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-o', '-b', 'w3m'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-o', '-b', 'w3m'], catch_exceptions=False)
         print(result)
         assert not result.exception
 
@@ -102,6 +102,6 @@ class TestOpenCommand():
         monkeypatch.setattr(wallabag, 'run_command', run_command)
 
         runner = CliRunner()
-        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'])
+        result = runner.invoke(wallabag.cli, ['open', '1', '-b', 'w3m'], catch_exceptions=False)
         print(result)
         assert not result.exception
