@@ -19,3 +19,10 @@ def confirm(msg):
 
 def echo(msg, *args, **kwargs):
     click.echo(msg, *args, **kwargs)
+
+
+def prompt(msg, *args, **kwargs):
+    SPINNER.stop()
+    result = click.prompt(msg, *args, **kwargs)
+    SPINNER.start()
+    return result

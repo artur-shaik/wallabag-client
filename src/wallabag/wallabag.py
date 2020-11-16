@@ -411,7 +411,7 @@ def config(ctx, check, password, oauth):
     options = []
     if password or oauth:
         if not config.is_valid():
-            click.echo(
+            wclick.echo(
                 "Invalid existing config. "
                 "Therefore you have to enter all values.")
         else:
@@ -422,10 +422,12 @@ def config(ctx, check, password, oauth):
                 options.append(SecretOption())
     configurator = Configurator(config)
     while True:
-        configurator.start(options)
-        (result, msg, options) = Validator(config).check_oauth()
+        with wclick.spinner():
+            configurator.start(options)
+            (result, msg, options) = Validator(config).check_oauth()
+
         if result or not options:
-            click.echo(msg)
+            wclick.echo(msg)
             sys.exit(0)
 
 
