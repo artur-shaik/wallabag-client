@@ -31,6 +31,7 @@ from wallabag.configurator import (
     )
 from wallabag.commands.update_by_tags import UpdateByTagsCommand
 from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
+from wallabag import wclick
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -429,7 +430,9 @@ def config(ctx, check, password, oauth):
 
 
 def run_command(command, quiet=False):
-    result, output = command.execute()
+    with wclick.spinner():
+        result, output = command.execute()
+
     if not quiet and output:
         click.echo(output)
     if not result:

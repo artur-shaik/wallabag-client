@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import click
 from colorama import Back
 
 from wallabag.api.get_entry import GetEntry
@@ -8,6 +7,7 @@ from wallabag.api.delete_entry import DeleteEntry
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.entry import Entry
+from wallabag import wclick
 
 
 class DeleteCommandParams(Params):
@@ -35,7 +35,7 @@ class DeleteCommand(Command):
                     f"{Back.RED}{DeleteCommand.WARN_MSG}:{Back.RESET}\n\n"
                     f"\t{entr.title}\n\n"
                     "Continue?")
-            if not click.confirm(confirm_msg):
+            if not wclick.confirm(confirm_msg):
                 return True, 'Cancelling'
 
         request = DeleteEntry(self.config, self.params.entry_id).request()

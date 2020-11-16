@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import click
 from colorama import Fore, Back
 
 from wallabag.commands.tags_param import TagsParam
@@ -10,6 +9,7 @@ from wallabag.api.get_list_entries import (
         GetListEntries, Params as ListEntriesParams)
 from wallabag.api.delete_entry import DeleteEntry
 from wallabag.entry import Entry
+from wallabag import wclick
 
 
 class DeleteByTagsParams(Params, TagsParam):
@@ -46,14 +46,14 @@ class DeleteByTags(Command):
                     f'{Back.RED}You are going to remove '
                     f'followed entries:{Back.RESET}'
                     f'\n\n\t{titles}\n\nContinue?')
-            if not click.confirm(confirm_msg):
+            if not wclick.confirm(confirm_msg):
                 return True, 'Cancelling'
 
         for entry in entries:
             if not self.params.quiet:
-                click.echo(f'Deleting entry: {entry.title}', nl=False)
+                wclick.echo(f'Deleting entry: {entry.title}', nl=False)
             DeleteEntry(self.config, entry.entry_id).request()
             if not self.params.quiet:
-                click.echo(f'\t...\t{Fore.GREEN}success{Fore.RESET}')
+                wclick.echo(f'\t...\t{Fore.GREEN}success{Fore.RESET}')
 
         return True, None
