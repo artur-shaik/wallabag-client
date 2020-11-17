@@ -4,10 +4,12 @@ import pytest
 from colorama import Fore
 from tabulate import tabulate
 
+from click.testing import CliRunner
 from wallabag.api.api import Api, Response
 from wallabag.api.get_list_entries import GetListEntries
 from wallabag.commands.list import ListCommand, ListParams
 from wallabag.config import Configs
+from wallabag import wallabag
 from tags import tags_test
 
 
@@ -15,7 +17,13 @@ def get_authorization_header(self):
     return {'Authorization': "Bearer a1b2"}
 
 
+def config__is_valid(self):
+    return True
+
+
 class TestListCommand():
+
+    runner = CliRunner()
 
     def setup_method(self, method):
         self.config = Configs("/tmp/config")
@@ -208,3 +216,23 @@ class TestListCommand():
                     [1, '', (
                         f'title {Fore.BLUE}{Fore.RESET} '
                         f'{Fore.BLUE}{Fore.RESET}')]])
+
+    @pytest.mark.parametrize(
+            'command_class', [
+                (['list'], 'ListCommand'),
+                (['list', '-c'], 'CountCommand')])
+    def test_list_command(self, monkeypatch, command_class):
+        command_runned = False
+
+        def run_command(command, quite=False):
+            nonlocal command_runned
+            command_runned = True
+            assert command.__class__.__name__ == command_class[1]
+
+        monkeypatch.setattr(wallabag, 'run_command', run_command)
+        monkeypatch.setattr(Configs, 'is_valid', config__is_valid)
+
+        result = self.runner.invoke(
+                wallabag.cli, command_class[0], catch_exceptions=False)
+        assert command_runned
+        assert result.exit_code == 0
