@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import platform
 import sys
+
+import tabulate
+
+from colorama import Fore
 
 from wallabag.api.get_list_entries import (
         GetListEntries, Params as ListEntriesParams)
@@ -17,7 +20,7 @@ class ListParams(Params, TagsParam):
     filter_read = None
     filter_starred = None
     oldest = False
-    trim = True
+    trim = False
     tags = None
 
     def __init__(self, quantity=None, filter_read=None,
@@ -56,28 +59,21 @@ class ListCommand(Command):
         return True, self.__print_entries(entries)
 
     def __print_entries(self, entries):
-        show_read_column, show_starred_column = self.__read_star_width(entries)
         entry_id_width = self.__entry_id_width(entries)
-        maxwidth = self.__get_maxwidth()
+        maxwidth = self.__get_maxwidth() - entry_id_width - 4
         output = []
-        if not self.params.oldest:
-            entries = reversed(entries)
         for item in entries:
             entry_id = str(item.entry_id).rjust(entry_id_width)
 
             title = item.title
-            read, starred = self.__read_star_char(item)
-            line = entry_id
-            if show_read_column or show_starred_column:
-                line = line + " "
-                if show_read_column:
-                    line = line + read
-                if show_starred_column:
-                    line = line + starred
-
-            line = f"{line} {title}"
-            output.append(line[0:maxwidth])
-        return '\n'.join(output)
+            status = self.__read_star_char(item)
+            annotation_mark = self.__annotation_mark(item)
+            tags_mark = self.__tags_mark(item)
+            entry = [
+                    entry_id, status,
+                    f"{title}{annotation_mark}{tags_mark}"[0:maxwidth]]
+            output.append(entry)
+        return tabulate.tabulate(output)
 
     def __get_quantity(self):
         if self.params.quantity is None:
@@ -105,31 +101,16 @@ class ListCommand(Command):
             return size_entry_id
         return 0
 
-    def __read_star_width(self, entries):
-        show_read_column = False
-        show_starred_column = False
-        for item in entries:
-            if item.read:
-                show_read_column = True
-            if item.starred:
-                show_starred_column = True
-            if show_read_column and show_starred_column:
-                break
-        return (show_read_column, show_starred_column)
-
     def __read_star_char(self, item):
-        read = " "
-        if item.read:
-            if platform.system() == "Windows":
-                read = "r"
-            else:
-                read = "✔"
-
-        starred = " "
         if item.starred:
-            starred = "*"
+            return "" if not item.read else ""
+        return "" if not item.read else ""
 
-        return (read, starred)
+    def __annotation_mark(self, entry):
+        return f" {Fore.BLUE}{Fore.RESET}" if entry.annotations else ""
+
+    def __tags_mark(self, entry):
+        return f" {Fore.BLUE}{Fore.RESET}" if entry.tags else ""
 
 
 class CountCommand(Command):

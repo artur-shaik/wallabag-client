@@ -2,7 +2,6 @@
 
 from enum import Enum, auto
 
-import click
 from colorama import Fore, Back
 
 from wallabag.api.add_tag_to_entry import AddTagToEntry, Params as AddTagParams
@@ -17,6 +16,7 @@ from wallabag.commands.command import Command
 from wallabag.commands.tags_param import TagsParam
 from wallabag.commands.params import Params
 from wallabag.entry import Entry
+from wallabag import wclick
 
 
 class TagsSubcommand(Enum):
@@ -144,7 +144,7 @@ class TagsCommand(Command):
                 f'{Back.RED}You are going to remove tag with id: '
                 f'{Fore.BLUE}{self.params.tag_id}{Fore.RESET}{Back.RESET}'
                 '\n\nContinue?')
-        if not click.confirm(confirm_msg):
+        if not wclick.confirm(confirm_msg):
             return True, 'Cancelling'
 
         DeleteTagsById(self.config, self.params.tag_id).request()
@@ -165,7 +165,7 @@ class TagsCommand(Command):
                 f'{Fore.BLUE}{self.params.tags}{Fore.RESET} '
                 f'from this entries:{Back.RESET}\n\n\t{titles}'
                 '\n\nContinue?')
-        if not click.confirm(confirm_msg):
+        if not wclick.confirm(confirm_msg):
             return True, 'Cancelling'
 
         DeleteTagsByLabel(self.config, self.params.tags).request()
@@ -189,7 +189,7 @@ class TagsCommand(Command):
                 f'{Back.RESET}'
                 f'\n\n\t{entry.title}\n\n'
                 'Continue?')
-        if not click.confirm(confirm_msg):
+        if not wclick.confirm(confirm_msg):
             return True, 'Cancelling'
 
         DeleteTagFromEntry(

@@ -8,6 +8,7 @@ from wallabag.commands.command import Command
 from wallabag.commands.update import UpdateCommandParams
 from wallabag.api.update_entry import UpdateEntry, Params
 from wallabag.entry import Entry
+from wallabag import wclick
 
 
 class UpdateByTagsCommand(Command):
@@ -36,7 +37,7 @@ class UpdateByTagsCommand(Command):
                     f'{self.__get_update_status()} '
                     f'of followed entries:{Back.RESET}'
                     f'\n\n\t{titles}\n\nContinue?')
-            if not click.confirm(confirm_msg):
+            if not wclick.confirm(confirm_msg):
                 return True, 'Cancelling'
 
         for entry in entries:

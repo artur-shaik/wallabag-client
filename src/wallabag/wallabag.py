@@ -31,6 +31,7 @@ from wallabag.configurator import (
     )
 from wallabag.commands.update_by_tags import UpdateByTagsCommand
 from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
+from wallabag import wclick
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -410,7 +411,7 @@ def config(ctx, check, password, oauth):
     options = []
     if password or oauth:
         if not config.is_valid():
-            click.echo(
+            wclick.echo(
                 "Invalid existing config. "
                 "Therefore you have to enter all values.")
         else:
@@ -421,15 +422,19 @@ def config(ctx, check, password, oauth):
                 options.append(SecretOption())
     configurator = Configurator(config)
     while True:
-        configurator.start(options)
-        (result, msg, options) = Validator(config).check_oauth()
+        with wclick.spinner():
+            configurator.start(options)
+            (result, msg, options) = Validator(config).check_oauth()
+
         if result or not options:
-            click.echo(msg)
+            wclick.echo(msg)
             sys.exit(0)
 
 
 def run_command(command, quiet=False):
-    result, output = command.execute()
+    with wclick.spinner():
+        result, output = command.execute()
+
     if not quiet and output:
         click.echo(output)
     if not result:

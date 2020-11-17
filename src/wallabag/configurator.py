@@ -5,14 +5,13 @@ import re
 import time
 from abc import ABC, abstractmethod
 
-import click
-
 from wallabag.api.api import (
         Api, Error, MINIMUM_API_VERSION, RequestException)
 from wallabag.api.get_api_version import ApiVersion
 from wallabag.api.api_token import ApiToken
 from wallabag.commands.command import Command
 from wallabag.config import Options, Sections
+from wallabag import wclick
 
 
 class Configurator():
@@ -51,7 +50,7 @@ class Validator(Command):
         except RequestException as error:
             response = error.response
             if response and response.error == Error.HTTP_BAD_REQUEST:
-                click.echo(response.error_description)
+                wclick.echo(response.error_description)
                 return self.response[response.error_text]
             return (False, error.error_description, None)
         return (True, "The configuration is ok.", None)
@@ -115,12 +114,12 @@ class ConfigOption(ABC):
     def setup(self, config):
         (sec, opt) = self.get_option_name()
         self.set_default(config.get(sec, opt))
-        value = click.prompt(self.get_prompt(),
-                             default=self.get_default())
+        value = wclick.prompt(self.get_prompt(),
+                              default=self.get_default())
         try:
             self.check_and_apply(value)
         except ValueError as e:
-            click.echo(e)
+            wclick.echo(e)
             return False
         config.set(sec, opt, self.get_value())
         return True

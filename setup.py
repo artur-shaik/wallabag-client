@@ -31,12 +31,14 @@ setup(
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
         'click>=7.0',
+        'click_spinner',
         'pyxdg',
         'colorama>=0.4.3',
         'delorean',
         'humanize',
         'lxml',
-        'tzlocal<3'
+        'tzlocal<3',
+        'tabulate'
     ],
     tests_require=[
         'pytest==4.6.3',
