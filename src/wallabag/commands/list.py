@@ -2,6 +2,7 @@
 
 import os
 import sys
+import textwrap
 
 import tabulate
 
@@ -63,22 +64,25 @@ class ListCommand(Command):
         maxwidth = self.__get_maxwidth() - entry_id_width - 4
         output = []
         for item in entries:
+            _maxwidth = maxwidth
             entry_id = str(item.entry_id).rjust(entry_id_width)
 
-            title = item.title
             status = self.__read_star_char(item)
             annotation_mark = self.__annotation_mark(item)
             tags_mark = self.__tags_mark(item)
+            _maxwidth -= (2 if annotation_mark else 0)
+            _maxwidth -= (2 if tags_mark else 0)
+            title = textwrap.shorten(item.title, _maxwidth, placeholder='...')
             entry = [
                     entry_id, status,
-                    f"{title}{annotation_mark}{tags_mark}"[0:maxwidth]]
+                    f"{title}{annotation_mark}{tags_mark}"]
             output.append(entry)
         return tabulate.tabulate(output)
 
     def __get_quantity(self):
         if self.params.quantity is None:
             try:
-                return os.get_terminal_size().lines - 2
+                return os.get_terminal_size().lines - 3
             except OSError:
                 return sys.maxsize
         else:

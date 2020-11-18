@@ -100,7 +100,7 @@ Would you like to create it now? [Y/n]
               help="Show read as well as unread entries.")
 @click.option('-o', '--oldest', default=False, is_flag=True,
               help="Show oldest matches instead of the newest.")
-@click.option('-t', '--trim-output', default=False, is_flag=True,
+@click.option('--trim-output/--no-trim-output', default=True, is_flag=True,
               help="Trim the titles to fit the length of the cli.")
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
