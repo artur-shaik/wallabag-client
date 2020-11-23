@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import textwrap
+from enum import Enum, auto
 from bs4 import BeautifulSoup
 from colorama import Fore, Back
 from lxml import etree
@@ -13,7 +13,24 @@ from wallabag.commands.params import Params
 from wallabag.entry import Entry
 
 
+class Alignment(Enum):
+    CENTER = auto()
+    LEFT = auto()
+    RIGHT = auto()
+
+    def list():
+        return [c.name for c in Alignment]
+
+    def get(name):
+        for align in Alignment:
+            if align.name == name.upper():
+                return align
+        return Alignment.CENTER
+
+
 class ShowCommandParams(Params):
+    width = '80%'
+    align = Alignment.CENTER
 
     def __init__(self, entry_id, colors=True, html=False,
                  raw=False, image_links=False):
@@ -26,6 +43,8 @@ class ShowCommandParams(Params):
 
 class ShowCommand(Command):
 
+    FAILWIDTH = 100
+
     def __init__(self, config, params):
         Command.__init__(self)
         self.config = config
@@ -34,6 +53,8 @@ class ShowCommand(Command):
     def _run(self):
         api = GetEntry(self.config, self.params.entry_id)
         entry = Entry(api.request().response)
+
+        self.__calculate_alignment()
 
         article = entry.content
         if not self.params.html:
@@ -44,16 +65,36 @@ class ShowCommand(Command):
             output = self.__format_output(output)
         return True, output
 
-    def __format_output(self, output):
+    def __calculate_alignment(self):
         try:
-            maxcol = os.get_terminal_size().columns
+            self.maxcol = os.get_terminal_size().columns
         except OSError:
-            maxcol = sys.maxsize
+            self.maxcol = ShowCommand.FAILWIDTH
 
+        self.width = self.maxcol
+        if self.params.width:
+            if '%' in self.params.width:
+                percent = int(self.params.width[:-1])
+                self.width = int(self.width * percent / 100)
+            else:
+                self.width = int(self.params.width)
+                if self.width > self.maxcol:
+                    self.width = self.maxcol
+
+    def __format_output(self, output):
         result = []
         for line in output.splitlines():
-            result.extend(textwrap.wrap(line, maxcol) if line else [''])
-        return "\n".join(result)
+            result.extend(textwrap.wrap(line, self.width) if line else [''])
+        result = textwrap.indent(
+                "\n".join(result), ' ' * self.__indent(self.params.align))
+        return result
+
+    def __indent(self, align):
+        if align == Alignment.CENTER:
+            return int((self.maxcol - self.width) / 2)
+        elif align == Alignment.RIGHT:
+            return self.maxcol - self.width
+        return 0
 
     def __html2text(self, html, annotations):
         soup = self.__mark_annotations(html, annotations)
@@ -104,7 +145,7 @@ class ShowCommand(Command):
 
     def __header_delimiter(self):
         try:
-            return "".ljust(os.get_terminal_size().columns, '=')
+            return "".ljust(self.width, '=')
         except OSError:
             return "\n"
 
@@ -136,7 +177,8 @@ class ShowCommand(Command):
 
     def __make_hr(self, soup):
         try:
-            hrstring = "".ljust(os.get_terminal_size().columns, '-')
+            print(self.width)
+            hrstring = "".ljust(self.width, '-')
         except OSError:
             hrstring = "-----"
         for hr in soup.findAll('hr'):
