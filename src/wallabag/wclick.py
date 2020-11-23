@@ -10,6 +10,10 @@ def spinner():
     return SPINNER
 
 
+def stop_spinner():
+    SPINNER.stop()
+
+
 def confirm(msg):
     SPINNER.stop()
     result = click.confirm(msg)

@@ -15,7 +15,7 @@ from wallabag.commands.anno import (
         AnnoCommand, AnnoSubcommand, AnnoCommandParams)
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
-from wallabag.commands.show import ShowCommand, ShowCommandParams
+from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.open import OpenCommand, OpenCommandParams
@@ -132,20 +132,27 @@ def list(ctx, starred, read, all, oldest, trim_output, count, tags, quantity):
               help="Show image links in optimized output")
 @click.option('-r', '--raw', default=False, is_flag=True,
               help="Disable wordwise trimming")
+@click.option('-w', '--width', default='80%',
+              help="Output width in percent or absolute columns count")
+@click.option('-a', '--alignment', default=Alignment.CENTER.name,
+              type=click.Choice(Alignment.list(), case_sensitive=False),
+              help="Output width in percent or absolute columns count")
 @click.option('-t', '--html', default=False, is_flag=True,
               help="Show the entry as html instead of optimized output for \
 the cli.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def show(ctx, entry_id, color, html, raw, image_links):
+def show(ctx, entry_id, color, html, raw, width, alignment, image_links):
     """
     Show the text of an entry.
 
     The ENTRY_ID can be found with `list` command.
     """
-    run_command(ShowCommand(
-        ctx.obj, ShowCommandParams(entry_id, color, html, raw, image_links)))
+    params = ShowCommandParams(entry_id, color, html, raw, image_links)
+    params.width = width
+    params.align = Alignment.get(alignment)
+    run_command(ShowCommand(ctx.obj, params))
 
 
 @cli.command()

@@ -7,6 +7,7 @@ from wallabag.commands.params import Params
 from wallabag.api.get_entry import GetEntry
 from wallabag.entry import Entry
 from wallabag.config import Sections, Options
+from wallabag import wclick
 
 
 class OpenCommandParams(Params):
@@ -44,6 +45,8 @@ class OpenCommand(Command):
             url = f"{serverurl}/view/{entry.entry_id}"
 
         browser = webbrowser.get(self.params.browser)
+
+        wclick.stop_spinner()
         browser.open_new_tab(url)
 
         return True, None
