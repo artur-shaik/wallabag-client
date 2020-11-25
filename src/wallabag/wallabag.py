@@ -9,6 +9,7 @@ import sys
 from colorama import Fore
 
 import click
+import click_repl
 
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.anno import (
@@ -446,3 +447,6 @@ def run_command(command, quiet=False):
         click.echo(output)
     if not result:
         sys.exit(1)
+
+
+click_repl.register_repl(cli)
