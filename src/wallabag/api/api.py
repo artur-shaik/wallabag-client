@@ -69,7 +69,7 @@ class Error(Enum):
 class ApiMethod(Enum):
     ADD_ENTRY = "/api/entries"
     DELETE_ENTRY = "/api/entries/{0}"
-    GET_ENTRY = "/api/entries/{0}"
+    GET_ENTRY = "/api/entries/{0}/export.mobi"
     UPDATE_ENTRY = "/api/entries/{0}"
     ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
@@ -97,16 +97,32 @@ class Response:
     error = Error.UNDEFINED
     error_text = ""
     error_description = ""
+    content_type = None
 
     response = None
+    filename = None
 
-    def __init__(self, status_code, text=None):
-        if text:
-            try:
-                self.response = json.loads(text)
-            except json.decoder.JSONDecodeError as err:
-                self.error_text = str(err)
-                self.response = text
+    def __init__(
+            self, status_code, text=None,
+            content=None, content_type='application/json',
+            content_disposition=None):
+        self.content_type = content_type
+        self.content_disposition = content_disposition
+        if self.content_type == 'application/json':
+            if text:
+                try:
+                    self.response = json.loads(text)
+                except json.decoder.JSONDecodeError as err:
+                    self.error_text = str(err)
+                    self.response = text
+        elif content:
+            self.response = content
+            if self.content_disposition:
+                match = re.match(
+                        'attachment; filename="(.*)"',
+                        self.content_disposition)
+                if match:
+                    self.filename = match.group(1)
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
             400: (Error.HTTP_BAD_REQUEST, self.__error_from_server),
@@ -124,7 +140,9 @@ class Response:
             result = errors.get(status_code)
         else:
             result = (Error.UNKNOWN_ERROR,
-                      (f"An unknown error occured. {status_code}", None))
+                      (
+                          f"An unknown error occured. {result.status_code}",
+                          None))
 
         self.error = result[0]
         if isinstance(result[1], tuple):
@@ -296,13 +314,19 @@ class Api(ABC):
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data,
                     allow_redirects=True)
-            response = Response(result.status_code, result.text)
+            print(result.headers)
+            content_type = result.headers['Content-Type']
+            content_disposition = None
+            if 'Content-Disposition' in result.headers:
+                content_disposition = result.headers['Content-Disposition']
+            response = Response(
+                    result.status_code, result.text,
+                    result.content, content_type, content_disposition)
         except (
                 requests.exceptions.ConnectionError,
                 requests.exceptions.MissingSchema) as error:
             self.log.exception('request exception')
-            raise RequestException(
-                    'Connection error', error)
+            raise RequestException('Connection error', error)
 
         self.log.debug('response result: %s', response.__dict__)
 
