@@ -5,10 +5,12 @@ import logging
 import platform
 import subprocess
 import sys
+from pathlib import PurePath
 
 from colorama import Fore
 
 import click
+import click_repl
 
 from wallabag.commands.add import AddCommand, AddCommandParams
 from wallabag.commands.anno import (
@@ -18,6 +20,8 @@ from wallabag.commands.list import ListCommand, ListParams, CountCommand
 from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
+from wallabag.commands.export import (
+        FormatType, ExportCommandParams, ExportCommand)
 from wallabag.commands.open import OpenCommand, OpenCommandParams
 from wallabag.commands.info import InfoCommand, InfoCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
@@ -402,6 +406,27 @@ def open(ctx, entry_id, open_original, browser):
                 ctx.obj, OpenCommandParams(entry_id, open_original, browser)))
 
 
+@cli.command(short_help="Export entry to file.")
+@click.option('-o', '--output', help="Output directory or file name")
+@click.option('-f', '--format', default=FormatType.JSON.name,
+              type=click.Choice(FormatType.list(), case_sensitive=False),
+              help="Export format")
+@click.argument('entry_id', required=True)
+@need_config
+@click.pass_context
+def export(ctx, entry_id, format, output):
+    """
+    Export entry to file.
+
+    Default output to current directory.
+    """
+    output = PurePath(output) if output else None
+    format = FormatType.get(format)
+    run_command(
+            ExportCommand(
+                ctx.obj, ExportCommandParams(entry_id, format, output)))
+
+
 @cli.command(short_help="Start configuration.")
 @click.option('-c', '--check', is_flag=True,
               help="Check the config for errors.")
@@ -446,3 +471,6 @@ def run_command(command, quiet=False):
         click.echo(output)
     if not result:
         sys.exit(1)
+
+
+click_repl.register_repl(cli)

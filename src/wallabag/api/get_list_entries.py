@@ -23,10 +23,15 @@ class GetListEntries(Api):
         ARCHIVE = "archive"
         STARRED = "starred"
         TAGS = "tags"
+        DETAIL = "detail"
 
     class ApiValues(Enum):
         class ORDER(Enum):
             ASC = "asc"
+
+        class DETAIL(Enum):
+            META = "metadata"
+            FULL = "full"
 
     def __init__(self, config, params):
         Api.__init__(self, config)
@@ -43,7 +48,8 @@ class GetListEntries(Api):
         ApiValues = self.ApiValues
         count = self.__get_count(self.params[Params.COUNT])
         api_params = {
-            ApiParams.PER_PAGE.value: count
+            ApiParams.PER_PAGE.value: count,
+            ApiParams.DETAIL.value: ApiValues.DETAIL.value.META.value
         }
 
         if Params.OLDEST in self.params and self.params[Params.OLDEST]:
