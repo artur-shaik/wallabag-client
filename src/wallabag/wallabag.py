@@ -411,10 +411,12 @@ def open(ctx, entry_id, open_original, browser):
 @click.option('-f', '--format', default=FormatType.JSON.name,
               type=click.Choice(FormatType.list(), case_sensitive=False),
               help="Export format")
+@click.option('--filename-with-id/--filename-no-id', default=True,
+              is_flag=True, help="Add id to filename")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def export(ctx, entry_id, format, output):
+def export(ctx, entry_id, format, output, filename_with_id):
     """
     Export entry to file.
 
@@ -422,9 +424,11 @@ def export(ctx, entry_id, format, output):
     """
     output = PurePath(output) if output else None
     format = FormatType.get(format)
+    params = ExportCommandParams(entry_id, format, output)
+    params.filename_with_id = filename_with_id
     run_command(
             ExportCommand(
-                ctx.obj, ExportCommandParams(entry_id, format, output)))
+                ctx.obj, params))
 
 
 @cli.command(short_help="Start configuration.")

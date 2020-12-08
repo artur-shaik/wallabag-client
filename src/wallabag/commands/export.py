@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import PurePath, Path
@@ -36,6 +35,7 @@ class ExportCommandParams(Params):
     entry_id = None
     format = None
     output_file = None
+    filename_with_id = True
 
     def __init__(
             self, entry_id, format: FormatType, output_file: PurePath = None):
@@ -68,23 +68,35 @@ class ExportCommand(Command):
 
     def _run(self):
         format = self.params.format.name.lower()
+        output_file = self.params.output_file
         result = ExportEntry(
                 self.config,
                 self.params.entry_id,
                 format).request()
-        if os.path.isdir(self.params.output_file):
-            if result.filename:
-                if result.filename.startswith('.'):
-                    entry = Entry(
-                            GetEntry(
-                                self.config,
-                                self.params.entry_id).request().response)
-                    result.filename = f'{entry.title}{result.filename}'
-                new_name = result.filename
-            else:
-                new_name = str(f'{datetime.now().timestamp()}.{format}')
-            self.params.output_file = PurePath(
-                    f'{self.params.output_file}/{new_name}')
-        with open(self.params.output_file, 'wb') as file:
+        if output_file.name.endswith(f'.{format}'):
+            result.filename = output_file.name
+            output_file = output_file.parent
+        if not Path(output_file).exists():
+            Path(output_file).mkdir(parents=True)
+        if result.filename:
+            if result.filename.startswith('.'):
+                entry = Entry(
+                        GetEntry(
+                            self.config,
+                            self.params.entry_id).request().response)
+                result.filename = f'{entry.title}{result.filename}'
+            new_name = result.filename
+        else:
+            new_name = str(f'{datetime.now().timestamp()}.{format}')
+        output_file = PurePath(
+                f'{Path(output_file).resolve()}/'
+                f'{self.__get_filename(new_name)}')
+
+        with open(output_file, 'wb') as file:
             file.write(result.content)
-        return True, f'Exported to: {self.params.output_file}'
+        return True, f'Exported to: {output_file}'
+
+    def __get_filename(self, name):
+        if self.params.filename_with_id:
+            return f'{self.params.entry_id}. {name}'
+        return name
