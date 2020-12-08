@@ -58,6 +58,7 @@ class Configs():
     def get_path(self, custom_path=None):
         if custom_path:
             self.custom_path = custom_path
+        if self.custom_path:
             return PurePath(self.custom_path)
         return PurePath(CONFIG_DIRECTORY,
                         CONFIG_WALLABAG_DIR,
