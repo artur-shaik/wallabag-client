@@ -8,6 +8,8 @@ from pathlib import PurePath, Path
 from wallabag.commands.params import Params
 from wallabag.commands.command import Command
 from wallabag.api.export_entry import ExportEntry
+from wallabag.api.get_entry import GetEntry
+from wallabag.entry import Entry
 
 
 class FormatType(Enum):
@@ -71,8 +73,16 @@ class ExportCommand(Command):
                 self.params.entry_id,
                 format).request()
         if os.path.isdir(self.params.output_file):
-            new_name = result.filename if result.filename else str(
-                    f'{datetime.now().timestamp()}.{format}')
+            if result.filename:
+                if result.filename.startswith('.'):
+                    entry = Entry(
+                            GetEntry(
+                                self.config,
+                                self.params.entry_id).request().response)
+                    result.filename = f'{entry.title}{result.filename}'
+                new_name = result.filename
+            else:
+                new_name = str(f'{datetime.now().timestamp()}.{format}')
             self.params.output_file = PurePath(
                     f'{self.params.output_file}/{new_name}')
         with open(self.params.output_file, 'wb') as file:
