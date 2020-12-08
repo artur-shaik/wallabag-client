@@ -20,7 +20,8 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 - Tags support;
 - Annotations support;
 - Opening entries in browser;
-- Showing entry information.
+- Showing entry information;
+- Export entries to files.
 
 ## Installation
 
@@ -46,10 +47,12 @@ Commands:
   config          Start configuration.
   delete          Delete an entry from wallabag.
   delete-by-tags  Delete entries from wallabag by tags.
+  export          Export entry to file.
   info            Get entry information.
   list            List the entries on the wallabag account.
   open            Open entry in browser.
   read            Toggle the read-status of an existing entry.
+  repl            Start an interactive shell.
   show            Show the text of an entry.
   star            Toggle the starred-status of an existing entry.
   tags            Retrieve and print all tags.
