@@ -417,6 +417,8 @@ def open(ctx, entry_id, open_original, browser):
 def export(ctx, entry_id, format, output):
     """
     Export entry to file.
+
+    Default output to current directory.
     """
     output = PurePath(output) if output else None
     format = FormatType.get(format)
