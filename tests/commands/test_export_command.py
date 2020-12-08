@@ -3,7 +3,6 @@
 import os
 import pytest
 import re
-import shutil
 from pathlib import PurePath, Path
 
 from click.testing import CliRunner
@@ -42,12 +41,14 @@ class TestExport():
 
         monkeypatch.setattr(ExportEntry, 'request', export_entry)
 
-        result, msg = ExportCommand(
-                self.config, ExportCommandParams(
+        params = ExportCommandParams(
                     10, FormatType.get(
-                        'epub'), PurePath(f'{tmp_path}/file'))).execute()
+                        'epub'), PurePath(f'{tmp_path}/file.epub'))
+        params.filename_with_id = False
+        result, msg = ExportCommand(
+                self.config, params).execute()
         assert result
-        assert msg == f'Exported to: {tmp_path}/file'
+        assert msg == f'Exported to: {tmp_path}/file.epub'
 
     def test_empty_output(self, monkeypatch, tmpdir):
 
@@ -57,6 +58,21 @@ class TestExport():
 
         monkeypatch.setattr(ExportEntry, 'request', export_entry)
 
+        result, msg = ExportCommand(
+                self.config, ExportCommandParams(
+                    10, FormatType.get('epub'), PurePath(tmpdir))).execute()
+        assert result
+        assert re.search(f'Exported to: {PurePath(tmpdir)}/.+.epub', msg)
+
+    def test_non_existed_directory(self, monkeypatch, tmpdir):
+
+        def export_entry(self):
+            return Response(
+                    200, None, b'123', 'application/epub')
+
+        monkeypatch.setattr(ExportEntry, 'request', export_entry)
+
+        tmpdir = tmpdir + '/new_dir/'
         result, msg = ExportCommand(
                 self.config, ExportCommandParams(
                     10, FormatType.get('epub'), PurePath(tmpdir))).execute()
@@ -76,9 +92,9 @@ class TestExport():
                 self.config, ExportCommandParams(
                     10, FormatType.get('epub'))).execute()
         assert result
-        assert msg == f'Exported to: {Path.cwd()}/file.epub'
+        assert msg == f'Exported to: {Path.cwd()}/10. file.epub'
 
-        os.remove(f'{Path.cwd()}/file.epub')
+        os.remove(f'{Path.cwd()}/10. file.epub')
 
     def test_wrong_format_type(self, monkeypatch, tmpdir):
 

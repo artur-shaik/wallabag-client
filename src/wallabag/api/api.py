@@ -329,6 +329,7 @@ class Api(ABC):
             self.log.exception('request exception')
             raise RequestException('Connection error', error)
 
+        self.log.debug('response headers: %s', result.headers)
         self.log.debug('response result: %s', response.__dict__)
 
         if response.has_error():
