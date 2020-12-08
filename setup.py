@@ -30,7 +30,7 @@ setup(
         'beautifulsoup4>=4.9.1',
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
-        'click>=7.0',
+        'click>=7.0,<8.0',
         'click_spinner',
         'click_repl>=0.1.6',
         'pyxdg',
