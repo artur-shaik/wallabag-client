@@ -61,7 +61,7 @@ class ListCommand(Command):
 
     def __print_entries(self, entries):
         entry_id_width = self.__entry_id_width(entries)
-        maxwidth = self.__get_maxwidth() - entry_id_width - 4
+        maxwidth = self.__get_maxwidth() - entry_id_width - 5
         output = []
         for item in entries:
             _maxwidth = maxwidth
