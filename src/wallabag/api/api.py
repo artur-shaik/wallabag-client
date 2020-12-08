@@ -69,7 +69,7 @@ class Error(Enum):
 class ApiMethod(Enum):
     ADD_ENTRY = "/api/entries"
     DELETE_ENTRY = "/api/entries/{0}"
-    GET_ENTRY = "/api/entries/{0}/export.mobi"
+    GET_ENTRY = "/api/entries/{0}"
     UPDATE_ENTRY = "/api/entries/{0}"
     ENTRY_EXISTS = "/api/entries/exists"
     LIST_ENTRIES = "/api/entries"
@@ -100,6 +100,7 @@ class Response:
     content_type = None
 
     response = None
+    content = None
     filename = None
 
     def __init__(
@@ -112,17 +113,18 @@ class Response:
             if text:
                 try:
                     self.response = json.loads(text)
+                    self.content = bytes(text, 'utf-8')
                 except json.decoder.JSONDecodeError as err:
                     self.error_text = str(err)
                     self.response = text
         elif content:
-            self.response = content
-            if self.content_disposition:
-                match = re.match(
-                        'attachment; filename="(.*)"',
-                        self.content_disposition)
-                if match:
-                    self.filename = match.group(1)
+            self.content = content
+        if self.content_disposition:
+            match = re.match(
+                    'attachment; filename="(.*)"',
+                    self.content_disposition)
+            if match:
+                self.filename = match.group(1)
         errors = {
             0: (Error.DNS_ERROR, ("Name or service not known.", None)),
             400: (Error.HTTP_BAD_REQUEST, self.__error_from_server),
@@ -314,7 +316,6 @@ class Api(ABC):
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data,
                     allow_redirects=True)
-            print(result.headers)
             content_type = result.headers['Content-Type']
             content_disposition = None
             if 'Content-Disposition' in result.headers:

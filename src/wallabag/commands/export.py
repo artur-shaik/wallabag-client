@@ -65,15 +65,16 @@ class ExportCommand(Command):
         self.params = params
 
     def _run(self):
+        format = self.params.format.name.lower()
         result = ExportEntry(
                 self.config,
                 self.params.entry_id,
-                self.params.format.name.lower()).request()
+                format).request()
         if os.path.isdir(self.params.output_file):
             new_name = result.filename if result.filename else str(
-                    datetime.now().ctime())
+                    f'{datetime.now().timestamp()}.{format}')
             self.params.output_file = PurePath(
                     f'{self.params.output_file}/{new_name}')
         with open(self.params.output_file, 'wb') as file:
-            file.write(result.response)
+            file.write(result.content)
         return True, f'Exported to: {self.params.output_file}'
