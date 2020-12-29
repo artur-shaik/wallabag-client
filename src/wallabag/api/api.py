@@ -316,8 +316,10 @@ class Api(ABC):
                     request.url, headers=request.headers,
                     params=request.api_params, data=request.data,
                     allow_redirects=True)
-            content_type = result.headers['Content-Type']
+            content_type = None
             content_disposition = None
+            if 'Content-Type' in result.headers:
+                content_type = result.headers['Content-Type']
             if 'Content-Disposition' in result.headers:
                 content_disposition = result.headers['Content-Disposition']
             response = Response(
