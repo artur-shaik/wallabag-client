@@ -40,7 +40,8 @@ setup(
         'humanize',
         'lxml',
         'tzlocal<3',
-        'tabulate'
+        'tabulate',
+        'packaging',
     ],
     tests_require=[
         'pytest==4.6.3',
