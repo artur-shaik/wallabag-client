@@ -143,7 +143,7 @@ class Response:
         else:
             result = (Error.UNKNOWN_ERROR,
                       (
-                          f"An unknown error occured. {result.status_code}",
+                          f"An unknown error occured. {status_code}",
                           None))
 
         self.error = result[0]
