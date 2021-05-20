@@ -7,7 +7,7 @@ from tabulate import tabulate
 from click.testing import CliRunner
 from wallabag.api.api import Api, Response
 from wallabag.api.get_list_entries import GetListEntries
-from wallabag.commands.list import ListCommand, ListParams
+from wallabag.commands.list import ListCommand, CountCommand, ListParams
 from wallabag.config import Configs
 from wallabag import wallabag
 from tags import tags_test
@@ -98,6 +98,26 @@ class TestListCommand():
         result, entries = command.execute()
         assert result
         assert len(entries.split('\n')) == 4
+
+    def test_list_count(self, monkeypatch):
+
+        def list_entries(self):
+            text = '''
+            { "_embedded": { "items": [
+                { "id": 1, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1},
+                { "id": 2, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1}
+            ] } }
+            '''
+            return Response(200, text)
+
+        monkeypatch.setattr(GetListEntries, 'request', list_entries)
+
+        command = CountCommand(self.config)
+        result, entries = command.execute()
+        assert result
+        assert entries == 2
 
     @pytest.mark.parametrize('tags', tags_test)
     def test_tags_param(self, monkeypatch, tags):
