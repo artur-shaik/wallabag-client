@@ -109,11 +109,13 @@ Would you like to create it now? [Y/n]
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
 @click.option('-g', '--tags', help="Return entries that matches ALL tags.")
+@click.option('--untagged', is_flag=True, help="Return entries that have no tags.")
 @click.option('-q', '--quantity', type=click.INT,
               help="Set the number of entries to show.")
 @need_config
 @click.pass_context
-def list(ctx, starred, read, all, oldest, trim_output, count, tags, quantity):
+def list(ctx, starred, read, all, oldest, trim_output,
+         count, tags, untagged, quantity):
     """
     List the entries on the wallabag account.
 
@@ -124,7 +126,8 @@ def list(ctx, starred, read, all, oldest, trim_output, count, tags, quantity):
         read = None
         starred = None
 
-    params = ListParams(quantity, read, starred, oldest, trim_output, tags)
+    params = ListParams(
+            quantity, read, starred, oldest, trim_output, tags, untagged)
     run_command(
             CountCommand(config, params) if count else
             ListCommand(config, params))
