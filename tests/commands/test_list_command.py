@@ -99,6 +99,29 @@ class TestListCommand():
         assert result
         assert len(entries.split('\n')) == 4
 
+    def test_list_untagged(self, monkeypatch):
+
+        def list_entries(self):
+            text = '''
+            { "_embedded": { "items": [
+                { "id": 1, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1},
+                { "id": 2, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1,
+                "tags": [
+                        {"id":7,"label":"tag","slug":"tag"},
+                        {"id":13,"label":"tag2","slug":"tag2"}]}
+                ]}}
+            '''
+            return Response(200, text)
+
+        monkeypatch.setattr(GetListEntries, 'request', list_entries)
+
+        command = ListCommand(self.config, ListParams(untagged=True))
+        result, entries = command.execute()
+        assert result
+        assert len(entries.split('\n')) == 3
+
     def test_list_count(self, monkeypatch):
 
         def list_entries(self):
@@ -118,6 +141,29 @@ class TestListCommand():
         result, entries = command.execute()
         assert result
         assert entries == 2
+
+    def test_list_count_untagged(self, monkeypatch):
+
+        def list_entries(self):
+            text = '''
+            { "_embedded": { "items": [
+                { "id": 1, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1},
+                { "id": 2, "title": "title", "content": "content",
+                "url": "url", "is_archived": 0, "is_starred": 1,
+                "tags": [
+                        {"id":7,"label":"tag","slug":"tag"},
+                        {"id":13,"label":"tag2","slug":"tag2"}]}
+                ]}}
+            '''
+            return Response(200, text)
+
+        monkeypatch.setattr(GetListEntries, 'request', list_entries)
+
+        command = CountCommand(self.config, ListParams(untagged=True))
+        result, entries = command.execute()
+        assert result
+        assert entries == 1
 
     @pytest.mark.parametrize('tags', tags_test)
     def test_tags_param(self, monkeypatch, tags):

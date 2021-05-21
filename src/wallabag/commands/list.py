@@ -23,20 +23,24 @@ class ListParams(Params, TagsParam):
     oldest = False
     trim = False
     tags = None
+    untagged = False
 
-    def __init__(self, quantity=None, filter_read=None,
-                 filter_starred=None, oldest=None, trim=None, tags=None):
+    def __init__(self, quantity=None, filter_read=None, filter_starred=None,
+                 oldest=None, trim=None, tags=None, untagged=False):
         self.quantity = quantity
         self.filter_read = filter_read
         self.filter_starred = filter_starred
         self.oldest = oldest
         self.trim = trim
         self.tags = tags
+        self.untagged = untagged
 
     def validate(self):
         result, msg = self._validate_tags()
         if not result:
             return False, msg
+        if self.untagged and self.tags:
+            return False, 'Please set one of `untagged` or `tags` parameter.'
         return True, None
 
 
@@ -57,6 +61,8 @@ class ListCommand(Command):
         })
         entries = Entry.create_list(
                 api.request().response['_embedded']["items"])
+        if self.params.untagged:
+            entries = list(filter(lambda e: not e.tags, entries))
         return True, self.__print_entries(entries)
 
     def __print_entries(self, entries):
@@ -128,8 +134,11 @@ class CountCommand(Command):
         api = GetListEntries(self.config, {
             ListEntriesParams.COUNT: sys.maxsize,
             ListEntriesParams.FILTER_READ: self.params.filter_read,
-            ListEntriesParams.FILTER_STARRED: self.params.filter_starred
+            ListEntriesParams.FILTER_STARRED: self.params.filter_starred,
+            ListEntriesParams.TAGS: self.params.tags
         })
-        response = api.request().response
-
-        return True, len(response["_embedded"]["items"])
+        entries = Entry.create_list(
+                api.request().response['_embedded']["items"])
+        if self.params.untagged:
+            entries = list(filter(lambda e: not e.tags, entries))
+        return True, len(entries)
