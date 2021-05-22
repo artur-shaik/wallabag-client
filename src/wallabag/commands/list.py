@@ -39,8 +39,10 @@ class ListParams(Params, TagsParam):
         result, msg = self._validate_tags()
         if not result:
             return False, msg
-        if self.untagged and self.tags:
-            return False, 'Please set one of `untagged` or `tags` parameter.'
+        if self.untagged:
+            if self.tags:
+                return False, 'Please set one of `untagged` or `tags` parameter.'
+            self.quantity = sys.maxsize
         return True, None
 
 
