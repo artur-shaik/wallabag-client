@@ -73,6 +73,8 @@ class ExportCommand(Command):
                 self.config,
                 self.params.entry_id,
                 format).request()
+        if format == 'html':
+            result.filename = '.html'
         if output_file.name.endswith(f'.{format}'):
             result.filename = output_file.name
             output_file = output_file.parent
