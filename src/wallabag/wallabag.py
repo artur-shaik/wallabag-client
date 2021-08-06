@@ -147,16 +147,22 @@ def list(ctx, starred, read, all, oldest, trim_output,
 @click.option('-t', '--html', default=False, is_flag=True,
               help="Show the entry as html instead of optimized output for \
 the cli.")
+@click.option('-m', '--markdown', default=False, is_flag=True,
+              help="Show the entry as markdown instead of optimized output for \
+the cli.")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def show(ctx, entry_id, color, html, raw, width, alignment, image_links):
+def show(
+        ctx, entry_id, color, html, markdown,
+        raw, width, alignment, image_links):
     """
     Show the text of an entry.
 
     The ENTRY_ID can be found with `list` command.
     """
-    params = ShowCommandParams(entry_id, color, html, raw, image_links)
+    params = ShowCommandParams(
+            entry_id, color, html, markdown, raw, image_links)
     params.width = width
     params.align = Alignment.get(alignment)
     run_command(ShowCommand(ctx.obj, params))

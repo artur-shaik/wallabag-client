@@ -9,6 +9,7 @@ from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.entry import Entry
 from wallabag.export.export_cli import ExportCli
+from wallabag.export.export_md import ExportMd
 
 
 class Alignment(Enum):
@@ -30,11 +31,12 @@ class ShowCommandParams(Params):
     width = '80%'
     align = Alignment.CENTER
 
-    def __init__(self, entry_id, colors=True, html=False,
+    def __init__(self, entry_id, colors=True, html=False, markdown=False,
                  raw=False, image_links=False):
         self.entry_id = entry_id
         self.colors = colors
         self.html = html
+        self.markdown = markdown
         self.raw = raw
         self.image_links = image_links
 
@@ -55,7 +57,12 @@ class ShowCommand(Command):
         self.__calculate_alignment()
 
         article = entry.content
-        if not self.params.html:
+        if self.params.markdown:
+            export_md = ExportMd()
+            article = export_md.html2md(article)
+            output = (f"# {entry.title}\n"
+                      f"{article}")
+        elif not self.params.html:
             export_cli = ExportCli(self.params, self.width)
             article = export_cli.html2text(article, entry.annotations)
             output = (f"{entry.title}\n"
