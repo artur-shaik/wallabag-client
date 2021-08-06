@@ -6,4 +6,5 @@ from markdownify import markdownify
 class ExportMd():
 
     def html2md(self, html):
-        return markdownify(html)
+        print(html)
+        return markdownify(html, heading_style="ATX")

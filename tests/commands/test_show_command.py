@@ -74,6 +74,23 @@ class TestShowCommand():
                 '<h1>title</h1>\n'
                 'content')
 
+    def test_entry_markdown(self, monkeypatch):
+        def request(self):
+            return Response(
+                    200, '{"id": 1, "title": "title", "content": "<h2>Sub title</h2><p>content<p>",\
+                            "url": "url", "is_archived": 0, "is_starred": 1}')
+
+        monkeypatch.setattr(GetEntry, 'request', request)
+
+        params = ShowCommandParams(1, markdown=True)
+        params.width = '100%'
+        result, output = ShowCommand(self.config, params).execute()
+        assert result
+        assert output == (
+                '# title\n'
+                '## Sub title\n\n'
+                'content\n')
+
     def test_entry_html_strip_content(self, monkeypatch):
         def request(self):
             return Response(
