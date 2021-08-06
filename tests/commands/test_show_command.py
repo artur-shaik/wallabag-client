@@ -61,7 +61,7 @@ class TestShowCommand():
     def test_entry_html_content(self, monkeypatch):
         def request(self):
             return Response(
-                    200, '{"id": 1, "title": "title", "content": "<h1>head</h1>content",\
+                    200, '{"id": 1, "title": "title", "content": "content",\
                             "url": "url", "is_archived": 0, "is_starred": 1}')
 
         monkeypatch.setattr(GetEntry, 'request', request)
@@ -71,8 +71,8 @@ class TestShowCommand():
         result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == (
-                f'title\n{"="*ShowCommand.FAILWIDTH}\n'
-                '<h1>head</h1>content')
+                '<h1>title</h1>\n'
+                'content')
 
     def test_entry_html_strip_content(self, monkeypatch):
         def request(self):
