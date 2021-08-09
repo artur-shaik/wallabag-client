@@ -12,6 +12,21 @@ from wallabag.export.export_cli import ExportCli
 from wallabag.export.export_md import ExportMd
 
 
+class Type(Enum):
+    TERM = auto()
+    HTML = auto()
+    MARKDOWN = auto()
+
+    def list():
+        return [c.name for c in Type]
+
+    def get(name):
+        for type in Type:
+            if type.name == name.upper():
+                return type
+        return Type.TERM
+
+
 class Alignment(Enum):
     CENTER = auto()
     LEFT = auto()
@@ -31,12 +46,11 @@ class ShowCommandParams(Params):
     width = '80%'
     align = Alignment.CENTER
 
-    def __init__(self, entry_id, colors=True, html=False, markdown=False,
+    def __init__(self, entry_id, type=Type.TERM, colors=True,
                  raw=False, image_links=False):
         self.entry_id = entry_id
+        self.type = type
         self.colors = colors
-        self.html = html
-        self.markdown = markdown
         self.raw = raw
         self.image_links = image_links
 
@@ -57,12 +71,12 @@ class ShowCommand(Command):
         self.__calculate_alignment()
 
         article = entry.content
-        if self.params.markdown:
+        if self.params.type == Type.MARKDOWN:
             export_md = ExportMd()
             article = export_md.html2md(article)
             output = (f"# {entry.title}\n"
                       f"{article}")
-        elif not self.params.html:
+        elif self.params.type == Type.TERM:
             export_cli = ExportCli(self.params, self.width)
             article = export_cli.html2text(article, entry.annotations)
             output = (f"{entry.title}\n"

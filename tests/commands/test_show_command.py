@@ -7,7 +7,8 @@ from colorama import Fore, Back
 from click.testing import CliRunner
 from wallabag.api.api import Response, RequestException
 from wallabag.api.get_entry import GetEntry
-from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
+from wallabag.commands.show import (
+        ShowCommand, ShowCommandParams, Alignment, Type)
 from wallabag.config import Configs
 from wallabag import wallabag
 
@@ -66,7 +67,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=True)
+        params = ShowCommandParams(1, type=Type.HTML)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -82,7 +83,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, markdown=True)
+        params = ShowCommandParams(1, type=Type.MARKDOWN)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -99,7 +100,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=False)
+        params = ShowCommandParams(1, colors=False)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -115,7 +116,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=True)
+        params = ShowCommandParams(1, colors=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -133,7 +134,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=False)
+        params = ShowCommandParams(1, colors=False)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -152,7 +153,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=False, image_links=True)
+                1, colors=False, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -180,7 +181,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=True, image_links=True)
+                1, colors=True, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -209,7 +210,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=True, image_links=True)
+                1, colors=True, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result

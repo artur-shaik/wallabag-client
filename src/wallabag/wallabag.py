@@ -17,7 +17,8 @@ from wallabag.commands.anno import (
         AnnoCommand, AnnoSubcommand, AnnoCommandParams)
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
-from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
+from wallabag.commands.show import (
+        ShowCommand, ShowCommandParams, Alignment, Type)
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.export import (
@@ -143,18 +144,15 @@ def list(ctx, starred, read, all, oldest, trim_output,
               help="Output width in percent or absolute columns count")
 @click.option('-a', '--alignment', default=Alignment.CENTER.name,
               type=click.Choice(Alignment.list(), case_sensitive=False),
-              help="Output width in percent or absolute columns count")
-@click.option('-t', '--html', default=False, is_flag=True,
-              help="Show the entry as html instead of optimized output for \
-the cli.")
-@click.option('-m', '--markdown', default=False, is_flag=True,
-              help="Show the entry as markdown instead of optimized output for \
-the cli.")
+              help="Output alignment")
+@click.option('-t', '--type', default=Type.TERM.name,
+              type=click.Choice(Type.list(), case_sensitive=False),
+              help="Output text type")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
 def show(
-        ctx, entry_id, color, html, markdown,
+        ctx, entry_id, color, type,
         raw, width, alignment, image_links):
     """
     Show the text of an entry.
@@ -162,7 +160,7 @@ def show(
     The ENTRY_ID can be found with `list` command.
     """
     params = ShowCommandParams(
-            entry_id, color, html, markdown, raw, image_links)
+            entry_id, Type.get(type), color, raw, image_links)
     params.width = width
     params.align = Alignment.get(alignment)
     run_command(ShowCommand(ctx.obj, params))
