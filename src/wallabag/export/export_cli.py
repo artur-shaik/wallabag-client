@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .export import Export
 from bs4 import BeautifulSoup
 
 from colorama import Back, Fore
@@ -7,23 +8,24 @@ from colorama import Back, Fore
 from lxml import etree
 
 
-class ExportCli():
+class ExportCli(Export):
 
-    def __init__(self, params, width, annotations):
+    def __init__(self, entry, params, width):
+        Export.__init__(self, entry)
         self.params = params
         self.width = width
-        self.annotations = annotations
 
-    def export(self, html):
-        soup = self.__mark_annotations(html)
+    def run(self):
+        soup = self.__mark_annotations(self.entry.content)
         self.__color_headers(soup)
         self.__color_bold(soup)
         self.__make_hr(soup)
         self.__replace_images(soup)
         self.__break_paragraphs(soup)
-        return self.__make_annotations(soup).replace('\n\n\n', '\n\n')
+        result = self.__make_annotations(soup).replace('\n\n\n', '\n\n')
+        return self.__output(self.entry.title, result)
 
-    def output(self, title, article):
+    def __output(self, title, article):
         return (f"{title}\n"
                 f"{self.__header_delimiter()}\n"
                 f"{article}")
@@ -40,9 +42,9 @@ class ExportCli():
 
     def __mark_annotations(self, html):
         soup = BeautifulSoup(html, "html.parser")
-        if self.annotations:
+        if self.entry.annotations:
             dom = etree.HTML(str(soup))
-            for anno in self.annotations:
+            for anno in self.entry.annotations:
                 anno_id = f"__anno-{anno['id']}__"
                 startOffset = int(anno['ranges'][0]['startOffset'])
                 endOffset = int(anno['ranges'][0]['endOffset'])
@@ -64,7 +66,7 @@ class ExportCli():
 
     def __make_annotations(self, soup):
         text = soup.text
-        for anno in self.annotations:
+        for anno in self.entry.annotations:
             anno_id = f"__anno-{anno['id']}__"
             text = text.replace(
                     f'{anno_id}_start', Back.CYAN).replace(

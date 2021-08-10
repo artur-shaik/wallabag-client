@@ -8,7 +8,7 @@ from wallabag.api.get_entry import GetEntry
 from wallabag.commands.command import Command
 from wallabag.commands.params import Params
 from wallabag.entry import Entry
-from wallabag.export.export import Export
+from wallabag.export.export_factory import ExportFactory
 from wallabag.format_type import ScreenType
 
 
@@ -50,13 +50,13 @@ class ShowCommand(Command):
         self.params = params
 
     def _run(self):
-        api = GetEntry(self.config, self.params.entry_id)
-        entry = Entry(api.request().response)
-
         self.__calculate_alignment()
 
-        export = Export.get(self.params, self.width, entry.annotations)
-        output = export.output(entry.title, export.export(entry.content))
+        api = GetEntry(self.config, self.params.entry_id)
+        output = ExportFactory.create(
+                Entry(api.request().response),
+                self.params,
+                self.width).run()
         if not self.params.raw:
             output = self.__format_output(output)
         return True, output

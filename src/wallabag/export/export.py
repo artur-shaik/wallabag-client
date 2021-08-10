@@ -1,26 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from wallabag.format_type import ScreenType
-from .export_cli import ExportCli
-from .export_html import ExportHtml
-from .export_md import ExportMd
-
 
 class Export():
 
-    def __init__(self):
+    def __init__(self, entry):
+        self.entry = entry
+
+    def run(self, title, html):
         pass
 
-    def export(self, html):
+    def __output(self, title, article):
         pass
-
-    def output(self, title, article):
-        pass
-
-    def get(params, width, annotations):
-        if params.type == ScreenType.MARKDOWN:
-            return ExportMd()
-        elif params.type == ScreenType.TERM:
-            return ExportCli(params, width, annotations)
-        else:
-            return ExportHtml()

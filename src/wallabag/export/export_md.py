@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from .export import Export
 from markdownify import markdownify
 
 
-class ExportMd():
+class ExportMd(Export):
 
-    def export(self, html):
-        return markdownify(html, heading_style="ATX")
+    def __init__(self, entry):
+        Export.__init__(self, entry)
 
-    def output(self, title, article):
+    def run(self):
+        return self.__output(
+                self.entry.title,
+                markdownify(self.entry.content, heading_style="ATX"))
+
+    def __output(self, title, article):
         return (f"# {title}\n"
                 f"{article}")
