@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from enum import Enum, auto
 from pathlib import PurePath, Path
 
 from wallabag.commands.params import Params
@@ -9,26 +8,7 @@ from wallabag.commands.command import Command
 from wallabag.api.export_entry import ExportEntry
 from wallabag.api.get_entry import GetEntry
 from wallabag.entry import Entry
-
-
-class FormatType(Enum):
-    XML = auto()
-    JSON = auto()
-    TXT = auto()
-    CSV = auto()
-    PDF = auto()
-    EPUB = auto()
-    MOBI = auto()
-    HTML = auto()
-
-    def list():
-        return [c.name for c in FormatType]
-
-    def get(name):
-        for format in FormatType:
-            if format.name == name.upper():
-                return format
-        return FormatType.JSON
+from wallabag.format_type import FormatType
 
 
 class ExportCommandParams(Params):

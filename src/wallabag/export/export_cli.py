@@ -9,21 +9,26 @@ from lxml import etree
 
 class ExportCli():
 
-    def __init__(self, params, width):
+    def __init__(self, params, width, annotations):
         self.params = params
         self.width = width
+        self.annotations = annotations
 
-    def html2text(self, html, annotations):
-        soup = self.__mark_annotations(html, annotations)
+    def export(self, html):
+        soup = self.__mark_annotations(html)
         self.__color_headers(soup)
         self.__color_bold(soup)
         self.__make_hr(soup)
         self.__replace_images(soup)
         self.__break_paragraphs(soup)
-        return self.__make_annotations(
-                soup, annotations).replace('\n\n\n', '\n\n')
+        return self.__make_annotations(soup).replace('\n\n\n', '\n\n')
 
-    def header_delimiter(self):
+    def output(self, title, article):
+        return (f"{title}\n"
+                f"{self.__header_delimiter()}\n"
+                f"{article}")
+
+    def __header_delimiter(self):
         try:
             return "".ljust(self.width, '=')
         except OSError:
@@ -33,11 +38,11 @@ class ExportCli():
         for p in soup.findAll('p'):
             p.insert_before(self.__get_new_line_tag(soup, times=2))
 
-    def __mark_annotations(self, html, annotations):
+    def __mark_annotations(self, html):
         soup = BeautifulSoup(html, "html.parser")
-        if annotations:
+        if self.annotations:
             dom = etree.HTML(str(soup))
-            for anno in annotations:
+            for anno in self.annotations:
                 anno_id = f"__anno-{anno['id']}__"
                 startOffset = int(anno['ranges'][0]['startOffset'])
                 endOffset = int(anno['ranges'][0]['endOffset'])
@@ -57,9 +62,9 @@ class ExportCli():
                     etree.tostring(dom, method='html'), "html.parser")
         return soup
 
-    def __make_annotations(self, soup, annotations):
+    def __make_annotations(self, soup):
         text = soup.text
-        for anno in annotations:
+        for anno in self.annotations:
             anno_id = f"__anno-{anno['id']}__"
             text = text.replace(
                     f'{anno_id}_start', Back.CYAN).replace(

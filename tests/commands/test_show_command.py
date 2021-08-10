@@ -8,8 +8,9 @@ from click.testing import CliRunner
 from wallabag.api.api import Response, RequestException
 from wallabag.api.get_entry import GetEntry
 from wallabag.commands.show import (
-        ShowCommand, ShowCommandParams, Alignment, Type)
+        ShowCommand, ShowCommandParams, Alignment)
 from wallabag.config import Configs
+from wallabag.format_type import ScreenType
 from wallabag import wallabag
 
 
@@ -67,7 +68,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, type=Type.HTML)
+        params = ShowCommandParams(1, type=ScreenType.HTML)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -83,7 +84,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, type=Type.MARKDOWN)
+        params = ShowCommandParams(1, type=ScreenType.MARKDOWN)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
