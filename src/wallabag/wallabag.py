@@ -216,7 +216,7 @@ def star(ctx, entry_id, quiet):
 @click.pass_context
 def add(ctx, url, title, read, starred, tags, quiet):
     """Add a new entry to wallabag."""
-    params = AddCommandParams(url, title, read, starred, tags)
+    params = AddCommandParams(url, title, starred, read, tags)
     run_command(AddCommand(ctx.obj, params), quiet)
 
 
