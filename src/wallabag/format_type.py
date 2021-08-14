@@ -12,17 +12,24 @@ class FormatType(Enum):
     EPUB = auto()
     MOBI = auto()
     HTML = auto()
-    CLI = auto()
     MARKDOWN = auto()
+    UNSUPPORTED = auto()
 
     def list():
         return [c.name for c in FormatType]
 
     def get(name):
-        for format in FormatType:
-            if format.name == name.upper():
-                return format
-        return FormatType.JSON
+        for type in FormatType:
+            if type.name == name.upper():
+                return type
+        return FormatType.UNSUPPORTED
+
+    def extension(type):
+        if type == FormatType.MARKDOWN:
+            return 'md'
+        elif type == FormatType.UNSUPPORTED:
+            return ''
+        return type.name.lower()
 
 
 class ScreenType(Enum):
@@ -38,3 +45,11 @@ class ScreenType(Enum):
             if type.name == name.upper():
                 return type
         return ScreenType.TERM
+
+def format_to_screen(type):
+    if type == FormatType.MARKDOWN:
+        return ScreenType.MARKDOWN
+    elif type == FormatType.HTML:
+        return ScreenType.HTML
+    else:
+        return None

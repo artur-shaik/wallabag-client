@@ -56,6 +56,7 @@ class ShowCommand(Command):
         output = ExportFactory.create(
                 Entry(api.request().response),
                 self.params,
+                self.params.type,
                 self.width).run()
         if not self.params.raw:
             output = self.__format_output(output)
