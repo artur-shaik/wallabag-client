@@ -21,7 +21,7 @@ Wallabag-client is refactored version of existed wallabag-cli tool.
 - Annotations support;
 - Opening entries in browser;
 - Showing entry information;
-- Export entries to files.
+- Export entry to file.
 
 ## Installation
 
