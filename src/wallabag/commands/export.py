@@ -54,6 +54,19 @@ class ExportCommand(Command):
         type = self.params.type
         output_file = self.params.output_file
         extension = FormatType.extension(type)
+        result = self.__get_result(type, extension)
+        output_file = self.__check_output_file(result, output_file, extension)
+        self.__create_output_path(output_file)
+        self.__fix_file_name(result, extension)
+        output_file = PurePath(
+                f'{Path(output_file).resolve()}/'
+                f'{self.__get_filename(result.filename)}')
+
+        with open(output_file, 'wb') as file:
+            file.write(result.content)
+        return True, f'Exported to: {output_file}'
+
+    def __get_result(self, type, extension):
         if type.name in ScreenType.list():
             result = GetEntry(
                         self.config,
@@ -67,24 +80,25 @@ class ExportCommand(Command):
                     self.config,
                     self.params.entry_id,
                     type.name.lower()).request()
+        return result
+
+    def __check_output_file(self, result, output_file, extension):
         if output_file.name.endswith(f'.{extension}'):
             result.filename = output_file.name
             output_file = output_file.parent
+        return output_file
+
+    def __create_output_path(self, output_file):
         if not Path(output_file).exists():
             Path(output_file).mkdir(parents=True)
+
+    def __fix_file_name(self, result, extension):
         if not result.filename or result.filename.startswith('.'):
             entry = Entry(
                 GetEntry(
                     self.config,
                     self.params.entry_id).request().response)
             result.filename = f'{entry.title}.{extension}'
-        output_file = PurePath(
-                f'{Path(output_file).resolve()}/'
-                f'{self.__get_filename(result.filename)}')
-
-        with open(output_file, 'wb') as file:
-            file.write(result.content)
-        return True, f'Exported to: {output_file}'
 
     def __get_filename(self, name):
         if self.params.filename_with_id:
