@@ -11,6 +11,7 @@ from wallabag.commands.export import (
         ExportCommand, ExportCommandParams, FormatType)
 from wallabag.api.api import Response
 from wallabag.api.export_entry import ExportEntry
+from wallabag.api.get_entry import GetEntry
 from wallabag import wallabag
 
 
@@ -56,13 +57,19 @@ class TestExport():
             return Response(
                     200, None, b'123', 'application/epub')
 
+        def get_entry(self):
+            return Response(
+                    200, '{"id": 10, "title": "title", "content": "content",\
+                            "url": "url", "is_archived": 0, "is_starred": 1}')
+
         monkeypatch.setattr(ExportEntry, 'request', export_entry)
+        monkeypatch.setattr(GetEntry, 'request', get_entry)
 
         result, msg = ExportCommand(
                 self.config, ExportCommandParams(
                     10, FormatType.get('epub'), PurePath(tmpdir))).execute()
         assert result
-        assert re.search(f'Exported to: {PurePath(tmpdir)}/.+.epub', msg)
+        assert f'Exported to: {PurePath(tmpdir)}/10. title.epub' == msg
 
     def test_non_existed_directory(self, monkeypatch, tmpdir):
 
@@ -70,14 +77,20 @@ class TestExport():
             return Response(
                     200, None, b'123', 'application/epub')
 
+        def get_entry(self):
+            return Response(
+                    200, '{"id": 10, "title": "title", "content": "content",\
+                            "url": "url", "is_archived": 0, "is_starred": 1}')
+
         monkeypatch.setattr(ExportEntry, 'request', export_entry)
+        monkeypatch.setattr(GetEntry, 'request', get_entry)
 
         tmpdir = tmpdir + '/new_dir/'
         result, msg = ExportCommand(
                 self.config, ExportCommandParams(
                     10, FormatType.get('epub'), PurePath(tmpdir))).execute()
         assert result
-        assert re.search(f'Exported to: {PurePath(tmpdir)}/.+.epub', msg)
+        assert f'Exported to: {PurePath(tmpdir)}/10. title.epub' == msg
 
     def test_empty_output_cdisposition(self, monkeypatch):
 
@@ -97,26 +110,20 @@ class TestExport():
         os.remove(f'{Path.cwd()}/10. file.epub')
 
     def test_wrong_format_type(self, monkeypatch, tmpdir):
-
-        def export_entry(self):
-            return Response(200, None, b'123', 'application/epub')
-
-        monkeypatch.setattr(ExportEntry, 'request', export_entry)
-
         command = ExportCommand(
                 self.config, ExportCommandParams(
                     10, FormatType.get('epub2'), PurePath(tmpdir)))
         result, msg = command.execute()
 
-        assert result
-        assert command.params.format == FormatType.get('json')
+        assert not result
+        assert msg == 'Unsupported type'
 
     def test_format_not_specified(self):
         result, msg = ExportCommand(
                 self.config, ExportCommandParams(10, None)).execute()
 
         assert not result
-        assert msg == 'Format type not specified'
+        assert msg == 'Type not specified'
 
     @pytest.mark.parametrize('values', [
         (None, 'Entry ID not specified'),
@@ -156,7 +163,7 @@ class TestExport():
             command_runned = True
             assert command.__class__.__name__ == 'ExportCommand'
             assert command.params.entry_id == '1'
-            assert command.params.format.name == 'PDF'
+            assert command.params.type.name == 'PDF'
 
         monkeypatch.setattr(wallabag, 'run_command', run_command)
         monkeypatch.setattr(Configs, 'is_valid', config__is_valid)

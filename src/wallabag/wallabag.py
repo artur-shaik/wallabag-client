@@ -17,11 +17,12 @@ from wallabag.commands.anno import (
         AnnoCommand, AnnoSubcommand, AnnoCommandParams)
 from wallabag.commands.delete import DeleteCommand, DeleteCommandParams
 from wallabag.commands.list import ListCommand, ListParams, CountCommand
-from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
+from wallabag.commands.show import (
+        ShowCommand, ShowCommandParams, Alignment)
 from wallabag.commands.tags import (
         TagsCommand, TagsCommandParams, TagsSubcommand)
 from wallabag.commands.export import (
-        FormatType, ExportCommandParams, ExportCommand)
+        ExportCommandParams, ExportCommand)
 from wallabag.commands.open import OpenCommand, OpenCommandParams
 from wallabag.commands.info import InfoCommand, InfoCommandParams
 from wallabag.commands.update import UpdateCommand, UpdateCommandParams
@@ -35,6 +36,7 @@ from wallabag.configurator import (
     )
 from wallabag.commands.update_by_tags import UpdateByTagsCommand
 from wallabag.commands.delete_by_tags import DeleteByTags, DeleteByTagsParams
+from wallabag.format_type import FormatType, ScreenType
 from wallabag import wclick
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -109,7 +111,8 @@ Would you like to create it now? [Y/n]
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
 @click.option('-g', '--tags', help="Return entries that matches ALL tags.")
-@click.option('--untagged', is_flag=True, help="Return entries that have no tags.")
+@click.option('--untagged', is_flag=True,
+              help="Return entries that have no tags.")
 @click.option('-q', '--quantity', type=click.INT,
               help="Set the number of entries to show.")
 @need_config
@@ -143,20 +146,23 @@ def list(ctx, starred, read, all, oldest, trim_output,
               help="Output width in percent or absolute columns count")
 @click.option('-a', '--alignment', default=Alignment.CENTER.name,
               type=click.Choice(Alignment.list(), case_sensitive=False),
-              help="Output width in percent or absolute columns count")
-@click.option('-t', '--html', default=False, is_flag=True,
-              help="Show the entry as html instead of optimized output for \
-the cli.")
+              help="Output alignment")
+@click.option('-t', '--type', default=ScreenType.TERM.name,
+              type=click.Choice(ScreenType.list(), case_sensitive=False),
+              help="Output text type")
 @click.argument('entry_id', required=True)
 @need_config
 @click.pass_context
-def show(ctx, entry_id, color, html, raw, width, alignment, image_links):
+def show(
+        ctx, entry_id, color, type,
+        raw, width, alignment, image_links):
     """
     Show the text of an entry.
 
     The ENTRY_ID can be found with `list` command.
     """
-    params = ShowCommandParams(entry_id, color, html, raw, image_links)
+    params = ShowCommandParams(
+            entry_id, ScreenType.get(type), color, raw, image_links)
     params.width = width
     params.align = Alignment.get(alignment)
     run_command(ShowCommand(ctx.obj, params))

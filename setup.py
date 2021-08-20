@@ -42,6 +42,7 @@ setup(
         'tzlocal<3',
         'tabulate',
         'packaging',
+        'markdownify',
     ],
     tests_require=[
         'pytest==4.6.3',

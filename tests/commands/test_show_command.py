@@ -7,8 +7,10 @@ from colorama import Fore, Back
 from click.testing import CliRunner
 from wallabag.api.api import Response, RequestException
 from wallabag.api.get_entry import GetEntry
-from wallabag.commands.show import ShowCommand, ShowCommandParams, Alignment
+from wallabag.commands.show import (
+        ShowCommand, ShowCommandParams, Alignment)
 from wallabag.config import Configs
+from wallabag.format_type import ScreenType
 from wallabag import wallabag
 
 
@@ -61,18 +63,35 @@ class TestShowCommand():
     def test_entry_html_content(self, monkeypatch):
         def request(self):
             return Response(
-                    200, '{"id": 1, "title": "title", "content": "<h1>head</h1>content",\
+                    200, '{"id": 1, "title": "title", "content": "content",\
                             "url": "url", "is_archived": 0, "is_starred": 1}')
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=True)
+        params = ShowCommandParams(1, type=ScreenType.HTML)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
         assert output == (
-                f'title\n{"="*ShowCommand.FAILWIDTH}\n'
-                '<h1>head</h1>content')
+                '<h1>title</h1>\n'
+                'content')
+
+    def test_entry_markdown(self, monkeypatch):
+        def request(self):
+            return Response(
+                    200, '{"id": 1, "title": "title", "content": "<h2>Sub title</h2><p>content<p>",\
+                            "url": "url", "is_archived": 0, "is_starred": 1}')
+
+        monkeypatch.setattr(GetEntry, 'request', request)
+
+        params = ShowCommandParams(1, type=ScreenType.MARKDOWN)
+        params.width = '100%'
+        result, output = ShowCommand(self.config, params).execute()
+        assert result
+        assert output == (
+                '# title\n'
+                '## Sub title\n\n'
+                'content\n')
 
     def test_entry_html_strip_content(self, monkeypatch):
         def request(self):
@@ -82,7 +101,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=False)
+        params = ShowCommandParams(1, colors=False)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -98,7 +117,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=True)
+        params = ShowCommandParams(1, colors=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -116,7 +135,7 @@ class TestShowCommand():
 
         monkeypatch.setattr(GetEntry, 'request', request)
 
-        params = ShowCommandParams(1, html=False, colors=False)
+        params = ShowCommandParams(1, colors=False)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -135,7 +154,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=False, image_links=True)
+                1, colors=False, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -163,7 +182,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=True, image_links=True)
+                1, colors=True, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
@@ -192,7 +211,7 @@ class TestShowCommand():
         monkeypatch.setattr(GetEntry, 'request', request)
 
         params = ShowCommandParams(
-                1, html=False, colors=True, image_links=True)
+                1, colors=True, image_links=True)
         params.width = '100%'
         result, output = ShowCommand(self.config, params).execute()
         assert result
