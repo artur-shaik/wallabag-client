@@ -182,10 +182,10 @@ def read(ctx, entry_id, quiet):
 
     The ENTRY_ID can be found with `list` command.
     """
-    params = UpdateCommandParams(entry_id)
+    params = UpdateCommandParams()
     params.toggle_read = True
     params.quiet = quiet
-    run_command(UpdateCommand(ctx.obj, params))
+    run_command(UpdateCommand(ctx.obj, entry_id, params))
 
 
 @cli.command()
@@ -202,10 +202,10 @@ def star(ctx, entry_id, quiet):
 
     The ENTRY_ID can be found with `list` command.
     """
-    params = UpdateCommandParams(entry_id)
+    params = UpdateCommandParams()
     params.toggle_star = True
     params.quiet = quiet
-    run_command(UpdateCommand(ctx.obj, params))
+    run_command(UpdateCommand(ctx.obj, entry_id, params))
 
 
 @cli.command()
