@@ -60,7 +60,7 @@ def __init_logging(debug, debug_level):
 @click.option('--config', help='Use custom configuration file')
 @click.option('--debug', is_flag=True, help='Enable debug logging to stdout')
 @click.option('--debug-level', default='debug', help='Debug level')
-@click.version_option(prog_name="wallabag")
+@click.version_option(package_name="wallabag-client")
 @click.pass_context
 def cli(ctx, config, debug, debug_level):
     __init_logging(debug, debug_level)
