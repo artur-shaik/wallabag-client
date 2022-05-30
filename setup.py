@@ -39,7 +39,7 @@ setup(
         'delorean',
         'humanize',
         'lxml',
-        'tzlocal<3',
+        'tzlocal',
         'tabulate',
         'packaging',
         'markdownify',

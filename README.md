@@ -6,6 +6,8 @@ Wallabag-client is a command line client for the self hosted read-it-later app [
 
 Wallabag-client is refactored version of existed wallabag-cli tool.
 
+You can read additional info [here](https://shaik.link/wallabag-client-features.html)
+
 --------------------------------------------------------------------------------
 
 ## Features
