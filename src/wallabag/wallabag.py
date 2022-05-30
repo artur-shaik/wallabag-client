@@ -110,7 +110,9 @@ Would you like to create it now? [Y/n]
               help="Trim the titles to fit the length of the cli.")
 @click.option('-c', '--count', default=False, is_flag=True,
               help="Show a sum of matching entries.")
-@click.option('-g', '--tags', help="Return entries that matches ALL tags.")
+@click.option('-g', '--tags',
+              help=("Comma-separated tags list. "
+                    "Return entries that matches ALL tags."))
 @click.option('--untagged', is_flag=True,
               help="Return entries that have no tags.")
 @click.option('-q', '--quantity', type=click.INT,
