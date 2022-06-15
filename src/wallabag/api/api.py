@@ -244,10 +244,15 @@ class Api(ABC):
             request.url = url
             request.headers = {'user-agent': Api.HEAD_UA}
             if not try_method_get:
-                result = self._request_head(request)
-                if result.error == Error.METHOD_NOT_ALLOWED:
-                    try_method_get = True
-                    continue
+                try:
+                    result = self._request_head(request)
+                    if result.error == Error.METHOD_NOT_ALLOWED:
+                        try_method_get = True
+                        continue
+                except RequestException:
+                    self.log.error(
+                            "couldn't check url because of RequestException")
+                    return True
             else:
                 result = self._request_get(request)
             break
