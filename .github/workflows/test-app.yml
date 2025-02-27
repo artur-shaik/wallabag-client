@@ -21,7 +21,7 @@ jobs:
       run: |
         sudo apt-get install w3m
         python -m pip install --upgrade pip
-        pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov
+        pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov tzdata
         python setup.py build
         python setup.py install
     - name: Lint with flake8
