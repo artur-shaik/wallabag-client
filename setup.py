@@ -32,7 +32,7 @@ setup(
         'pycryptodome>=3.9.8',
         'requests>=2.11.1',
         'click>=8.0',
-        'click_spinner',
+        'yaspin',
         'click_repl>=0.2.0',
         'pyxdg',
         'colorama>=0.4.3',

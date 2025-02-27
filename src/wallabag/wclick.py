@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import click
-import click_spinner
+from yaspin import yaspin
 
-SPINNER = click_spinner.spinner()
+SPINNER = yaspin(color="yellow")
 
 
 def spinner():
+
     return SPINNER
 
 
