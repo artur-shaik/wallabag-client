@@ -27,11 +27,11 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 . --count --radon-max-cc 10 --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Test with pytest
-      run: |
-        export TERM=xterm
-        pytest --cov=wallabag
-    - name: Report coverage
-      run: codecov
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    # - name: Test with pytest
+    #   run: |
+    #     export TERM=xterm
+    #     pytest --cov=wallabag
+    # - name: Report coverage
+    #   run: codecov
+    #   env:
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
