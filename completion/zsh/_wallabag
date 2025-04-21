@@ -1,0 +1,212 @@
+#compdef wallabag
+
+_wallabag() {
+    local context curcontext="$curcontext" state state_descr line
+    local ret=1
+    typeset -A opt_args
+
+    _arguments -C \
+        '(--config)--config[Use custom configuration file]:Configuration file:_files' \
+        '(--debug)--debug[Enable debug logging to stdout]' \
+        '(--debug-level)--debug-level[Debug level]:Debug level:_wallabag_loglevels' \
+        '(--no-spinner)--no-spinner[Disable spinner animation]' \
+        '(--version)--version[Show the version and exit]' \
+        '(--help -h)'{--help,-h}'[Show this message and exit]' \
+        '(-h)-h[Show this message and exit]' \
+        '1: :_wallabag_cmds' \
+        '*::arg:->args' \
+        && ret=0
+
+    case $state in
+        (args)
+            curcontext="${curcontext%:*:*}:wallabag-cmd-$words[1]:"
+            case $line[1] in
+                (add)
+                    _arguments \
+                        '(-t --title)'{-t,--title}'[Add a custom title]:title:' \
+                        '(-r --read)'{-r,--read}'[Mark as read]' \
+                        '(-s --starred)'{-s,--starred}'[Mark as starred]' \
+                        '(-a --tags)'{-a,--tags}'[Comma-separated list of tags]:tags:_wallabag_tags' \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::URL: '
+                    ;;
+                (anno)
+                    _arguments \
+                        '(-c --command)'{-c,--command}'[Subcommand]:subcommand:(LIST REMOVE SHOW)' \
+                        '(-e --entry-id)'{-e,--entry-id}'[ENTRY ID]:ID: ' \
+                        '(-a --anno-id)'{-a,--anno-id}'[ANNOTATION ID]:annotation id: ' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]'
+                    ;;
+                (config)
+                    _arguments \
+                        '(-c --check)'{-c,--check}'[Check the config for errors]' \
+                        '(-p --password)'{-p,--password}'[Change the wallabag password]' \
+                        '(-o --oauth)'{-o,--oauth}'[Change the wallabag client credentials]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]'
+                    ;;
+                (delete)
+                    _arguments \
+                        '(-f --force)'{-f,--force}'[Do not ask before deletion]' \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (delete-by-tags)
+                    _arguments \
+                        '(-f --force)'{-f,--force}'[Do not ask before deletion]' \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::TAGS: '
+                    ;;
+                (export)
+                    _arguments \
+                        '(-o --output)'{-o,--output}'[Output directory or file name]:_path_files' \
+                        '(-f --format)'{-f,--format}'[Export format]:format:_wallabag_formats' \
+                        '(--filename-with-id)--filename-with-id[Add id to filename]' \
+                        '(--filename-no-id)--filename-no-id[Add id to filename]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (info)
+                    _arguments \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (list)
+                    _arguments \
+                        '(-s --starred)'{-s,--starred}'[Show only starred entries]' \
+                        '(-u --unstarred)'{-u,--unstarred}'[Show only unstarred entries]' \
+                        '(-r --read)'{-r,--read}'[Show only read entries]' \
+                        '(-n --unread)'{-n,--unread}'[Show only unread entries]' \
+                        '(-a --all)'{-a,--all}'[Show read as well as unread entries]' \
+                        '(-o --oldest)'{-o,--oldest}'[Show oldest mathces instead of the newest]' \
+                        '(--trim-output)--trim-output[Trim the titles to fit the length of the cli]' \
+                        '(--no-trim-output)--no-trim-output[Do not trim the titles to fit the length of the cli]' \
+                        '(-c --count)'{-c,--count}'[Show a sum of matching entries]' \
+                        '(-g --tags)'{-g,--tags}'[Comma-separated tags list. Return entries that matches ALL tags.]:tags:_wallabag_tags' \
+                        '(--untagged)--untagged[Return entries that have no tags]' \
+                        '(-q --quantity)'{-q,--quantity}'[Set the number of entries to show.]:number: ' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                    && ret=0
+                    ;;
+                (open)
+                    _arguments \
+                        '(-o --open-original)'{-o,--open-original}'[Open original article]' \
+                        '(-b --browser)'{-b,--browser}'[Use particular browser]:browser: ' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (read)
+                    _arguments \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (repl)
+                    _arguments \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]'
+                    ;;
+                (show)
+                    _arguments \
+                        '(-c --color)'{-c,--color} \
+                        '(-n --no-color)'{-n,--no-color} \
+                        '(-i --image-links)'{-i,--image-links}'[Show image links in optimized output]' \
+                        '(-r --raw)'{-r,--raw}'[Disable wordwise trimming]' \
+                        '(-w --width)'{-w,--width}'[Output width in percent or absolute columns count]:width: ' \
+                        '(-a --alignment)'{-a,--alignment}'[Output alignment]:alignment:(CENTER LEFT RIGHT)' \
+                        '(-t --type)'{-t,--type}'[Output text type]:text type:(TERM HTML MARKDOWN)' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (star)
+                    _arguments \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (tags)
+                    _arguments \
+                        '(-c --command)'{-c,--command}'[Subcommand]:subcommand:(LIST ADD REMOVE)' \
+                        '(-e --entry-id)'{-e,--entry-id}'[ENTRY ID]:ID: ' \
+                        '(-t --tags)'{-t,--tags}'[TAGS for subcommands]:tags:_wallabag_tags' \
+                        '(--tag-id)'--tag-id'[TAG_ID - used for removing tag by ID]:tagid: ' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]'
+                    ;;
+                (update)
+                    _arguments \
+                        '(-t --title)'{-t,--title}'[Change the title]:title:' \
+                        '(-r --toggle-read)'{-r,--toggle}'[Toggle the read status]' \
+                        '(-s --toggle-starred)'{-s,--toggle-starred}'[Toggle the starred status]' \
+                        '(--read)--read[Set the read status]' \
+                        '(--unread)--unread[Unset the read status]' \
+                        '(--starred)--starred[Set the starred status]' \
+                        '(--unstarred)--unstarred[Unset the starred status]' \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::ID: '
+                    ;;
+                (update-by-tags)
+                    _arguments \
+                        '(--read)--read[Set the read status]' \
+                        '(--unread)--unread[Unset the read status]' \
+                        '(--starred)--starred[Set the starred status]' \
+                        '(--unstarred)--unstarred[Unset the starred status]' \
+                        '(-f --force)'{-f,--force}'[Do not ask before update]' \
+                        '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
+                        '(-h --help)'{-h,--help}'[Show this message and exit]' \
+                        '*::tags:_wallabag_tags'
+                    ;;
+                esac
+            ;;
+    esac
+}
+
+(( $+functions[_wallabag_loglevels] )) ||
+_wallabag_loglevels() {
+    local loglevels; loglevels=(
+        'DEBUG:Detailed information, typically only of interest to a developer trying to diagnose a problem.'
+        'INFO:Confirmation that things are working as expected.'
+        'WARNING:An indication that something unexpected happened, or that a problem might occur in the near future (e.g. ‘disk space low’). The software is still working as expected.'
+        'ERROR:Due to a more serious problem, the software has not been able to perform some function.'
+        'CRITICAL:A serious error, indicating that the program itself may be unable to continue running.'
+    )
+    _describe -t loglevels 'wallabag loglevels' loglevels "$@"
+}
+
+(( $+functions[_wallabag_cmds] )) ||
+_wallabag_cmds() {
+    local commands; commands=(
+        'add:Add a new entry to wallabag'
+        'anno:Annotation commands'
+        'config:Start configuration'
+        'delete:Delete an entry from wallabag'
+        'delete-by-tags:Delete entries from wallabag by tags'
+        'export:Export entry to file'
+        'info:Get entry information'
+        'list:List the entries on the wallabag account'
+        'open:Open entry in browser'
+        'read:Toggle the read-status of an existing entry'
+        'repl:Start an interactive shell'
+        'show:Show the text of an entry'
+        'star:Toggle the starred-status of an existing entry'
+        'tags:Retrieve and print all tags'
+        'update:Toggle the read or starred status or change the title'
+        'update-by-tags:Set the read or starred status of an existing entry by tags'
+    )
+    _describe -t commands 'wallabag command' commands "$@"
+}
+
+(( $+functions[_wallabag_tags] )) ||
+_wallabag_tags() {
+    local tags; tags=(${${(f)"$(wallabag --no-spinner tags -c LIST)"}//*. t:/})
+    _describe -t tags 'wallabag tags' tags "$@"
+}
+
+(( $+functions[_wallabag_formats] )) ||
+_wallabag_formats() {
+    local formats; formats=(XML JSON TXT CSV PDF EPUB MOBI HTML MARKDOWN UNSUPPORTED)
+    _describe -t formats 'wallabag formats' formats "$@"
+}
+
+_wallabag "$@"

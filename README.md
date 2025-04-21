@@ -61,3 +61,20 @@ Commands:
   update          Toggle the read or starred status or change the title of...
   update-by-tags  Set the read or starred status of an existing entries...
 ```
+
+## Install shell completion (zsh)
+
+A completion script for zsh is provided in the directory `completion/zsh/_wallabag`.
+
+Installation can vary based on your zsh settings and environment. Most importantly, the file has to be placed in one of the directories contained in the `$fpath` variable and then autoloaded.
+
+If you want to install the completion script for all users, you can do the following:
+
+```sh
+mkdir -p /usr/local/share/zsh/site-functions
+cp _wallabag /usr/local/share/zsh/site-functions
+```
+
+and restart zsh.
+
+A better option is to have a directory in your home for local completion scripts, but setting this up is beyond the scope of these instructions. You may refer to [this answer on Stackoverflow](https://stackoverflow.com/a/67161186) for more details.
