@@ -92,7 +92,7 @@ class TestGetEntriesList():
             assert values[0][1].value not in params
 
     @pytest.mark.parametrize('oldest', [
-        (True, GetListEntries.ApiValues.ORDER.value.ASC.value),
+        (True, GetListEntries.ApiValues.ORDER.ASC.value),
         (None, None), (False, None)
         ])
     def test_param_oldest(self, oldest):

@@ -25,7 +25,7 @@ class GetListEntries(Api):
         TAGS = "tags"
         DETAIL = "detail"
 
-    class ApiValues(Enum):
+    class ApiValues():
         class ORDER(Enum):
             ASC = "asc"
 
@@ -49,11 +49,11 @@ class GetListEntries(Api):
         count = self.__get_count(self.params[Params.COUNT])
         api_params = {
             ApiParams.PER_PAGE.value: count,
-            ApiParams.DETAIL.value: ApiValues.DETAIL.value.META.value
+            ApiParams.DETAIL.value: ApiValues.DETAIL.META.value
         }
 
         if Params.OLDEST in self.params and self.params[Params.OLDEST]:
-            api_params[ApiParams.ORDER.value] = ApiValues.ORDER.value.ASC.value
+            api_params[ApiParams.ORDER.value] = ApiValues.ORDER.ASC.value
 
         if Params.FILTER_READ in self.params:
             self._put_bool_param(
