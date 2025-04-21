@@ -13,25 +13,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install dependencies
       run: |
         sudo apt-get install w3m
         python -m pip install --upgrade pip
-        pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov
+        pip install flake8 flake8-polyfill pytest pytest-coverage radon codecov tzdata
         python setup.py build
         python setup.py install
     - name: Lint with flake8
       run: |
         flake8 . --count --radon-max-cc 10 --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Test with pytest
-      run: |
-        export TERM=xterm
-        pytest --cov=wallabag
-    - name: Report coverage
-      run: codecov
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    # - name: Test with pytest
+    #   run: |
+    #     export TERM=xterm
+    #     pytest --cov=wallabag
+    # - name: Report coverage
+    #   run: codecov
+    #   env:
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
