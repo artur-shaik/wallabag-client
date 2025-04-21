@@ -125,3 +125,7 @@ dmypy.json
 
 # VSCode cruft
 .vscode
+
+# Nix build result
+result/
+
