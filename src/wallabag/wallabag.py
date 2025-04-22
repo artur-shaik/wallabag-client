@@ -40,6 +40,7 @@ from wallabag.format_type import FormatType, ScreenType
 from wallabag import wclick
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+spinner_enabled=True
 
 
 def __init_logging(debug, debug_level):
@@ -58,13 +59,16 @@ def __init_logging(debug, debug_level):
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--config', help='Use custom configuration file')
-@click.option('--debug', is_flag=True, help='Enable debug logging to stdout')
+@click.option('--debug21', is_flag=True, help='Enable debug logging to stdout')
 @click.option('--debug-level', default='debug', help='Debug level')
+@click.option('--no-spinner', is_flag=True, default=False, help='Disable spinner animation')
 @click.version_option(package_name="wallabag-client")
 @click.pass_context
-def cli(ctx, config, debug, debug_level):
-    __init_logging(debug, debug_level)
+def cli(ctx, config, debug21, debug_level, no_spinner):
+    __init_logging(debug21, debug_level)
 
+    global spinner_enabled
+    spinner_enabled = not no_spinner
     # Workaround for default non-unicode encodings in the
     # Windows cmd and Powershell
     # -> Analyze encoding and set to utf-8
@@ -73,6 +77,7 @@ def cli(ctx, config, debug, debug_level):
         if "65001" not in codepage:
             subprocess.check_output(['chcp', '65001'], shell=True)
 
+    print("111111111111111111111111111111111111111111111")
     ctx.obj = Configs(config)
 
     logger = logging.getLogger('wallabag')
@@ -479,7 +484,11 @@ def config(ctx, check, password, oauth):
 
 
 def run_command(command, quiet=False):
-    with wclick.spinner():
+    global spinner_enabled
+    if spinner_enabled:
+        with wclick.spinner():
+            result, output = command.execute()
+    else:
         result, output = command.execute()
 
     if not quiet and output:
