@@ -77,7 +77,6 @@ def cli(ctx, config, debug21, debug_level, no_spinner):
         if "65001" not in codepage:
             subprocess.check_output(['chcp', '65001'], shell=True)
 
-    print("111111111111111111111111111111111111111111111")
     ctx.obj = Configs(config)
 
     logger = logging.getLogger('wallabag')
