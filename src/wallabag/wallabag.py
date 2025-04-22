@@ -483,7 +483,6 @@ def config(ctx, check, password, oauth):
 
 
 def run_command(command, quiet=False):
-    global spinner_enabled
     if spinner_enabled:
         with wclick.spinner():
             result, output = command.execute()
