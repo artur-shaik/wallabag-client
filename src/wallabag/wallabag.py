@@ -40,7 +40,7 @@ from wallabag.format_type import FormatType, ScreenType
 from wallabag import wclick
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-spinner_enabled=True
+spinner_enabled = True
 
 
 def __init_logging(debug, debug_level):
@@ -61,7 +61,8 @@ def __init_logging(debug, debug_level):
 @click.option('--config', help='Use custom configuration file')
 @click.option('--debug21', is_flag=True, help='Enable debug logging to stdout')
 @click.option('--debug-level', default='debug', help='Debug level')
-@click.option('--no-spinner', is_flag=True, default=False, help='Disable spinner animation')
+@click.option('--no-spinner', is_flag=True, default=False,
+              help='Disable spinner animation')
 @click.version_option(package_name="wallabag-client")
 @click.pass_context
 def cli(ctx, config, debug21, debug_level, no_spinner):
@@ -483,7 +484,6 @@ def config(ctx, check, password, oauth):
 
 
 def run_command(command, quiet=False):
-    global spinner_enabled
     if spinner_enabled:
         with wclick.spinner():
             result, output = command.execute()

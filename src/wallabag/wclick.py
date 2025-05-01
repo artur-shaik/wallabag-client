@@ -3,22 +3,26 @@
 import click
 from yaspin import yaspin
 
-SPINNER = yaspin(color="yellow")
+
+SPINNER = None
 
 
 def spinner():
-
+    global SPINNER
+    if not SPINNER:
+        SPINNER = yaspin(color="yellow")
     return SPINNER
 
 
 def stop_spinner():
-    SPINNER.stop()
+    spinner().stop()
+    pass
 
 
 def confirm(msg):
-    SPINNER.stop()
+    spinner().stop()
     result = click.confirm(msg)
-    SPINNER.start()
+    spinner().start()
     return result
 
 
@@ -27,7 +31,7 @@ def echo(msg, *args, **kwargs):
 
 
 def prompt(msg, *args, **kwargs):
-    SPINNER.stop()
+    spinner().stop()
     result = click.prompt(msg, *args, **kwargs)
-    SPINNER.start()
+    spinner().start()
     return result
