@@ -9,7 +9,7 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        version = "1.8.6";
+        version = "1.8.11";
 
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python312;
