@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 import delorean
 
 
@@ -30,7 +31,11 @@ class Entry:
         self.read = item['is_archived'] == 1
         self.starred = item['is_starred'] == 1
         if 'created_at' in item:
-            self.created_at = delorean.parse(item['created_at'])
+            try:
+                self.created_at = datetime.datetime.fromisoformat(item['created_at'])
+                self.created_at = delorean.Delorean(datetime=self.created_at)
+            except ValueError:
+                self.created_at = delorean.parse(item['created_at'])
         if 'reading_time' in item:
             self.reading_time = item['reading_time']
         if 'preview_picture' in item:
