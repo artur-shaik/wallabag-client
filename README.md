@@ -1,4 +1,4 @@
-![badge](https://action-badges.now.sh/artur-shaik/wallabag-client) [![codecov](https://codecov.io/gh/artur-shaik/wallabag-client/branch/master/graph/badge.svg?token=INPHCV9VDO)](https://codecov.io/gh/artur-shaik/wallabag-client) [![PyPI version shields.io](https://img.shields.io/pypi/v/wallabag-client.svg)](https://pypi.python.org/pypi/wallabag-client/)
+![Python application](https://github.com/artur-shaik/wallabag-client/actions/workflows/test-app.yml/badge.svg)](https://github.com/artur-shaik/wallabag-client/actions/workflows/test-app.yml) [![codecov](https://codecov.io/gh/artur-shaik/wallabag-client/branch/master/graph/badge.svg?token=INPHCV9VDO)](https://codecov.io/gh/artur-shaik/wallabag-client) [![PyPI version shields.io](https://img.shields.io/pypi/v/wallabag-client.svg)](https://pypi.python.org/pypi/wallabag-client/)
 
 # wallabag-client
 
