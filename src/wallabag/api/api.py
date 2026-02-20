@@ -82,6 +82,7 @@ class ApiMethod(Enum):
     DELETE_ANNOTATION = "/api/annotations/{0}"
     TOKEN = "/oauth/v2/token"
     VERSION = "/api/version"
+    VIEW = "/view/{0}"
 
 
 class Verbs(Enum):

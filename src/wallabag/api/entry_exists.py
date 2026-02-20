@@ -11,6 +11,7 @@ class EntryExists(Api):
 
     class ApiParams(Enum):
         URL = "url"
+        RETURN_ID = "return_id"
 
     def __init__(self, config, url):
         Api.__init__(self, config)
@@ -26,5 +27,6 @@ class EntryExists(Api):
         if not self.url:
             raise ValueException("URL is empty")
         return {
-            EntryExists.ApiParams.URL.value: self.url
+            EntryExists.ApiParams.URL.value: self.url,
+            EntryExists.ApiParams.RETURN_ID.value: 1,
         }
