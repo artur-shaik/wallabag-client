@@ -44,9 +44,9 @@ setup(
         'packaging',
         'markdownify',
     ],
-    tests_require=[
-        'pytest==4.6.3',
-    ],
+    extras_require={
+        "test": ["pytest"],
+    },
 
     entry_points='''
         [console_scripts]
