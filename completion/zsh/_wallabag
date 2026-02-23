@@ -27,6 +27,7 @@ _wallabag() {
                         '(-r --read)'{-r,--read}'[Mark as read]' \
                         '(-s --starred)'{-s,--starred}'[Mark as starred]' \
                         '(-a --tags)'{-a,--tags}'[Comma-separated list of tags]:tags:_wallabag_tags' \
+                        '(-u --return-url)'{-u,--return-url}'[return the internal URL of the entry]' \
                         '(-q --quiet)'{-q,--quiet}'[Hide the output if no error occurs]' \
                         '(-h --help)'{-h,--help}'[Show this message and exit]' \
                         '*::URL: '
