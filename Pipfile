@@ -1,0 +1,30 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+beautifulsoup4 = "*"
+pycryptodome = "*"
+requests = "*"
+click = "*"
+yaspin = "*"
+click-repl = "*"
+pyxdg = "*"
+colorama = "*"
+delorean = "*"
+humanize = "*"
+lxml = "*"
+tzlocal = "*"
+tabulate = "*"
+packaging = "*"
+markdownify = "*"
+
+[dev-packages]
+pytest-runner = "*"
+setuptools-scm = "*"
+wheel = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.13"
